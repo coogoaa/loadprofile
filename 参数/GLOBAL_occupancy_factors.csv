@@ -1,0 +1,5 @@
+occupancy,daytime_mult,daytime_hours_AU,daytime_hours_DE,note
+No modification (default/skip),1.0,07-17,09-17,跳过时默认;直接使用基准曲线;不做任何调整
+Mostly away during the day,0.6,07-17,09-17,白天离家;夜间用电偏重;AU白天07-17;DE白天09-17
+Working from home,1.4,07-17,09-17,居家办公;白天用电偏重;AU白天07-17;DE白天09-17
+Someone always at home,1.2,07-17,09-17,始终有人在家;白天适度偏重;AU白天07-17;DE白天09-17

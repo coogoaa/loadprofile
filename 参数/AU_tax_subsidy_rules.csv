@@ -1,0 +1,8 @@
+rule,value,unit,note
+GST_rate,10,%,适用于所有太阳能设备
+subsidy_type,STC,per_kWh_battery,Small-scale Technology Certificates
+subsidy_per_kwh_battery,100,AUD,按电池容量计算补贴(示例值-需按实际政策更新)
+max_subsidy_battery_kwh,50,kWh,补贴上限对应电池容量
+panel_cost_per_kw,540,AUD/kW,税前面板单价
+inverter_cost_per_kw,280,AUD/kW,税前逆变器单价
+battery_cost_per_kwh,865,AUD/kWh,税前电池单价

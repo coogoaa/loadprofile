@@ -1,0 +1,9 @@
+state,cooling_season_months,heating_season_months,note
+NSW,Dec-Mar,Jun-Aug,温带海洋性气候;夏季制冷需求中等;冬季供暖需求中等
+VIC,Dec-Mar,Jun-Aug,温带海洋性气候;冬季较冷供暖需求较高
+SA,Dec-Mar,Jun-Aug,地中海气候;夏季炎热制冷需求高;冬季温和
+WA,Dec-Mar,Jun-Aug,地中海气候;夏季炎热;冬季温和
+QLD,Oct-Apr,Jun-Jul,亚热带/热带;制冷季长达7个月;供暖季极短
+NT,Sep-Apr,-,热带气候;几乎全年需要制冷;无供暖需求
+TAS,Jan-Feb,May-Sep,温带海洋性气候;夏季凉爽制冷需求低;冬季较长供暖需求高
+ACT,Dec-Feb,May-Sep,大陆性气候;夏季炎热;冬季寒冷供暖需求高
