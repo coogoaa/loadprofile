@@ -1,0 +1,7 @@
+# G01 全跳过（纯基础默认值）
+address: 1 Martin Place, Sydney NSW 2000
+q1: skip
+q2: skip
+# q3: (不适用 — Q2 无暖通系统)
+q4: skip
+# q5: (不适用 — Q4 无 EV)

@@ -1,0 +1,7 @@
+# F02 居住=居家办公
+address: 1 Martin Place, Sydney NSW 2000
+q1: Working from home
+q2: Heat pump (heating & cooling)
+q3: Medium
+q4: No electric vehicle
+# q5: (不适用 — Q4 无 EV)

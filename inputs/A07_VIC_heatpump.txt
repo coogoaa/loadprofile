@@ -1,0 +1,7 @@
+# A07 州覆盖 VIC
+address: 1 Spring Street, Melbourne VIC 3000
+q1: Mostly away during the day
+q2: Heat pump (heating & cooling)
+q3: Medium
+q4: 10,000 km
+q5: Mostly overnight

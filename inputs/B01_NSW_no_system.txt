@@ -1,0 +1,7 @@
+# B01 系统=无
+address: 1 Martin Place, Sydney NSW 2000
+q1: Mostly away during the day
+q2: No heating or cooling system
+# q3: (不适用 — Q2 无暖通系统)
+q4: No electric vehicle
+# q5: (不适用 — Q4 无 EV)

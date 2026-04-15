@@ -1,0 +1,7 @@
+# C02 强度=Medium
+address: 1 Martin Place, Sydney NSW 2000
+q1: Mostly away during the day
+q2: Heat pump (heating & cooling)
+q3: Medium
+q4: No electric vehicle
+# q5: (不适用 — Q4 无 EV)

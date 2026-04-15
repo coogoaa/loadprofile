@@ -1,0 +1,7 @@
+# G02 极值（TAS + 电热 VeryHigh + 25k EV 光伏）
+address: 1 Elizabeth Street, Hobart TAS 7000
+q1: Working from home
+q2: Electric heating
+q3: Very high
+q4: 25,000+ km
+q5: Solar-optimized charging

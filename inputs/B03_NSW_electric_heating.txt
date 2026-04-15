@@ -1,0 +1,7 @@
+# B03 系统=电热(制热)
+address: 1 Martin Place, Sydney NSW 2000
+q1: Mostly away during the day
+q2: Electric heating
+q3: High
+q4: No electric vehicle
+# q5: (不适用 — Q4 无 EV)
