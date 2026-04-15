@@ -713,91 +713,440 @@ class LoadProfileCalculator:
                     overnight_kwh=on_k, overnight_pct=on_s*100)
 
 
-# ── Markdown 报告生成 ───────────────────────────────────────────────────────────
+# ── Markdown 报告生成（逐步详细版）──────────────────────────────────────────────
 def generate_md_report(calc, r, address="") -> str:
-    """将计算结果格式化为可读的 Markdown 报告。"""
+    """将计算结果逐步展开为含公式、过程、结果的详细 Markdown 报告。"""
     lines = []
     def ln(s=""): lines.append(s)
+    def h2(s):    ln(f"## {s}"); ln()
+    def h3(s):    ln(f"### {s}"); ln()
+    def blk(*rows): ln("```"); [ln(row) for row in rows]; ln("```"); ln()
 
+    # 常用别名
+    p          = calc.p
+    state      = calc.state
+    system     = calc.system
+    usage_level= calc.usage_level
+    mileage    = calc.mileage
+    occupancy  = calc.occupancy
+    ev_charging= calc.ev_charging
+    pc = system in COOL_SYS
+    ph = system in HEAT_SYS
+
+    sf    = p.season_flags[state]
+    cf    = sf["cool"]; hf = sf["heat"]
+    bms   = p.monthly_share[state]
+    hb    = p.hourly_share[state]
+    u     = p.usage_coeff[usage_level]
+    t_base= p.hvac_load[system]
+    ev_dist = p.ev_charging[ev_charging]
+    occ_v   = p.occupancy.get(occupancy, 1.0)
+
+    base   = r["base_annual"]
+    t_ext  = r["thermal_extra"]
+    ev_ext = r["ev_extra"]
+    final  = r["final_annual"]
+    u_mult = u["annual_mult"]
+    cmm    = u["cool_month_mult"]
+    hmm    = u["heat_month_mult"]
+    cpm    = u["cool_peak_mult"]
+    hpm    = u["heat_peak_mult"]
+
+    # ── 标题 ──────────────────────────────────────────────────────────────────
     ln(f"# LoadProfile 计算报告")
+    ln(f"> **{state}** · {system} · {usage_level}")
     ln()
-    ln(f"## 输入摘要")
-    ln()
+    h2("一、输入摘要")
     if address:
         ln(f"**地址:** {address}  ")
-    ln(f"| 参数 | 值 |")
-    ln(f"|------|-----|")
-    ln(f"| 州 | `{calc.state}` |")
-    ln(f"| 暖通系统 | {calc.system} |")
-    ln(f"| 使用强度 | {calc.usage_level} |")
-    ln(f"| EV 年里程 | {calc.mileage:,} km |")
-    ln(f"| EV 充电模式 | {calc.ev_charging} |")
-    ln(f"| 居住模式 | {calc.occupancy} |")
+        ln()
+    ln("| 参数 | 值 |")
+    ln("|------|-----|")
+    ln(f"| 州 | `{state}` |")
+    ln(f"| 暖通系统 | {system} |")
+    ln(f"| 使用强度 | {usage_level} |")
+    ln(f"| EV 年里程 | {mileage:,} km |")
+    ln(f"| EV 充电模式 | {ev_charging} |")
+    ln(f"| 居住模式 | {occupancy} |")
     ln()
 
-    # Step 1
-    ln("---")
-    ln("## Step 1 — 年用电量")
+    # ── 前置标志位 ────────────────────────────────────────────────────────────
+    h2("二、前置标志位")
+    ln("各步骤计算前，根据州 + 系统类型自动推导以下标志，供后续所有 Step 引用。")
     ln()
-    ln("| 项目 | 公式 | 数值 |")
-    ln("|------|------|------|")
-    ln(f"| Base_Annual | 查表 ({calc.state}) | **{r['base_annual']:,.0f} kWh** |")
-    t_base = calc.p.hvac_load[calc.system]
-    u_mult = calc.p.usage_coeff[calc.usage_level]["annual_mult"]
-    ln(f"| Thermal_Extra | {t_base:,.0f} × {u_mult:.3f} | {r['thermal_extra']:,.0f} kWh |")
-    ln(f"| EV_Extra | {calc.mileage:,} km × 0.18 kWh/km | {r['ev_extra']:,.0f} kWh |")
-    ln(f"| **Final_Annual** | Base + Thermal + EV | **{r['final_annual']:,.0f} kWh** |")
+    cool_months = [MONTHS[i] for i, v in enumerate(cf) if v]
+    heat_months = [MONTHS[i] for i, v in enumerate(hf) if v]
+    ln(f"| 标志 | 说明 | 本案例值 |")
+    ln(f"|------|------|---------|")
+    ln(f"| CoolFlag[m]=1 | 制冷季月份 | {', '.join(cool_months) if cool_months else '无'} |")
+    ln(f"| HeatFlag[m]=1 | 制热季月份 | {', '.join(heat_months) if heat_months else '无'} |")
+    ln(f"| 系统参与冷季 | system ∈ COOL_SYS | {'✅ 是' if pc else '❌ 否'} |")
+    ln(f"| 系统参与暖季 | system ∈ HEAT_SYS | {'✅ 是' if ph else '❌ 否'} |")
+    ln(f"| DaytimeFlag[h]=1 | H07–H16 (07:00–17:00) | 固定 |")
+    ln(f"| CoolPeakFlag[h]=1 | H14–H18 (14:00–19:00) | 固定 |")
+    ln(f"| HeatPeakFlag[h]=1 | H06–H08 & H18–H21 | 固定 |")
     ln()
 
-    # Step 2
+    # ── STEP 1 ────────────────────────────────────────────────────────────────
     ln("---")
-    ln("## Step 2 — 月度分布")
+    h2("Step 1 — 确定最终年用电量")
+    ln("在各州基础年电量上，叠加暖通空调和 EV 的额外用电。")
     ln()
-    ln("| 月份 | 季节倍数 | 月电量 (kWh) | 份额 | 标记 |")
-    ln("|------|---------|------------|------|------|")
-    sf = calc.p.season_flags[calc.state]
-    pc = calc.system in COOL_SYS; ph = calc.system in HEAT_SYS
+
+    h3("1-A  热力额外电量 Thermal_Extra")
+    ln("**公式：**")
+    blk(
+        "Thermal_Extra = BaseThermalLoad[system] × UsageMult[level]",
+        f"             = {t_base:,.0f} kWh  ×  {u_mult:.3f}",
+        f"             = {t_ext:,.2f} kWh"
+    )
+    ln(f"- `BaseThermalLoad[{system}]` = **{t_base:,.0f} kWh**（查表 AU_hvac_thermal_load.csv）")
+    ln(f"- `UsageMult[{usage_level}]` = **{u_mult:.3f}**（查表 AU_usage_level_coefficients.csv）")
+    ln(f"- **Thermal_Extra = {t_ext:,.2f} kWh**")
+    ln()
+
+    h3("1-B  EV 额外电量 EV_Extra")
+    ln("**公式：**")
+    blk(
+        "EV_Extra = 年里程 (km) × 能效 (kWh/km)",
+        f"         = {mileage:,} km  ×  0.18 kWh/km",
+        f"         = {ev_ext:,.2f} kWh"
+    )
+    ln(f"- 能效固定值 **0.18 kWh/km**（来自 GLOBAL_ev_params.csv）")
+    if ev_ext == 0:
+        ln(f"- 无 EV，EV_Extra = **0 kWh**")
+    else:
+        ln(f"- **EV_Extra = {ev_ext:,.2f} kWh**")
+    ln()
+
+    h3("1-C  最终年用电量 Final_Annual")
+    ln("**公式：**")
+    blk(
+        "Final_Annual = Base_Annual + Thermal_Extra + EV_Extra",
+        f"            = {base:,.2f} + {t_ext:,.2f} + {ev_ext:,.2f}",
+        f"            = {final:,.2f} kWh"
+    )
+    ln("**Step 1 汇总：**")
+    ln()
+    ln("| 项目 | 数值 |")
+    ln("|------|------|")
+    ln(f"| Base_Annual ({state}) | {base:,.2f} kWh |")
+    ln(f"| Thermal_Extra | {t_ext:,.2f} kWh |")
+    ln(f"| EV_Extra | {ev_ext:,.2f} kWh |")
+    ln(f"| **Final_Annual** | **{final:,.2f} kWh** |")
+    ln()
+
+    # ── STEP 2 ────────────────────────────────────────────────────────────────
+    ln("---")
+    h2("Step 2 — 月度分布（12 个月）")
+    ln("把全年用电量按月分摊，体现冷暖季高峰，同时叠加热力/EV 额外用电。")
+    ln()
+
+    h3("2-A  季节乘数 SeasonalMult[m]")
+    ln("**目的：** 冷暖季月份用电量放大，保留季节性高峰形状。")
+    ln()
+    ln("**公式：**")
+    blk(
+        "SeasonalMult[m] = 1",
+        "    + IF(系统参与冷季 AND CoolFlag[m]=1,  CoolMonthMult−1,  0)",
+        "    + IF(系统参与暖季 AND HeatFlag[m]=1,  HeatMonthMult−1,  0)"
+    )
+    ln(f"- `CoolMonthMult` = **{cmm:.2f}**（参与冷季: {'是' if pc else '否'}）")
+    ln(f"- `HeatMonthMult` = **{hmm:.2f}**（参与暖季: {'是' if ph else '否'}）")
+    ln()
+    ln("| 月份 | CoolFlag | HeatFlag | 冷季加成 | 暖季加成 | **SeasonalMult** | 说明 |")
+    ln("|------|---------|---------|---------|---------|----------------|------|")
+    for i, m in enumerate(MONTHS):
+        ca = (cmm - 1) if (pc and cf[i]) else 0.0
+        ha = (hmm - 1) if (ph and hf[i]) else 0.0
+        mk = []
+        if cf[i] and pc: mk.append("❄制冷")
+        if hf[i] and ph: mk.append("🔥制热")
+        note = " ".join(mk) if mk else "平季"
+        sm = r["seasonal_mult"][i]
+        ln(f"| {m} | {cf[i]} | {hf[i]} | +{ca:.2f} | +{ha:.2f} | **{sm:.3f}** | {note} |")
+    ln()
+
+    h3("2-B  重塑基准 ReshapedBase → 归一化 NormBase")
+    ln("**目的：** 保留冷暖季波动形状，同时把全年总量「归一化」回 Base_Annual。")
+    ln()
+    ln("**公式：**")
+    blk(
+        "ReshapedBase[m] = Base_Annual × BaseMonthlyShare[m] × SeasonalMult[m]",
+        "NormBase[m]     = ReshapedBase[m] / SUM(ReshapedBase) × Base_Annual"
+    )
+    ln(f"**代入示例（以 {MONTHS[0]} 为例）：**")
+    rb0 = r["reshaped_base"][0]
+    nb0 = r["norm_base"][0]
+    blk(
+        f"ReshapedBase[{MONTHS[0]}] = {base:,.2f} × {bms[0]:.5f} × {r['seasonal_mult'][0]:.3f}",
+        f"              = {rb0:,.4f} kWh",
+        f"NormBase[{MONTHS[0]}]     = {rb0:,.4f} / {r['sum_reshaped']:,.4f} × {base:,.2f}",
+        f"              = {nb0:,.4f} kWh"
+    )
+    ln(f"→ SUM(ReshapedBase) = **{r['sum_reshaped']:,.2f} kWh**（季节膨胀后，下一步拉回）")
+    ln(f"→ SUM(NormBase) = **{sum(r['norm_base']):,.2f} kWh**（= Base_Annual ✅）")
+    ln()
+
+    h3("2-C  热力额外分配 ThermalAlloc[m]")
+    ln(f"**目的：** 把 Thermal_Extra = {t_ext:,.2f} kWh 按设备冷暖月权重分摊到各月。")
+    ln()
+    if t_ext == 0:
+        ln(f"> 当前系统 **{system}** Thermal_Extra = 0，所有月份 ThermalAlloc = 0.00 kWh")
+    else:
+        rule_parts = []
+        if pc: rule_parts.append(f"冷季月: ThermalWeight += BaseShare × CoolMonthMult({cmm:.2f})")
+        if ph: rule_parts.append(f"暖季月: ThermalWeight += BaseShare × HeatMonthMult({hmm:.2f})")
+        for rp in rule_parts:
+            ln(f"- {rp}")
+        ln()
+        ln("**公式：**")
+        blk(
+            "ThermalWeight[m] = （冷季贡献 + 暖季贡献）",
+            "ThermalAlloc[m]  = ThermalWeight[m] / SUM(ThermalWeight) × Thermal_Extra"
+        )
+        # 找第一个非零月举例
+        ex_i = next((i for i in range(12) if r["thermal_alloc_monthly"][i] > 0), 0)
+        tw_ex = bms[ex_i] * (cmm if (pc and cf[ex_i]) else 0) + bms[ex_i] * (hmm if (ph and hf[ex_i]) else 0)
+        # recalculate sum_tw
+        sum_tw = sum(
+            bms[i] * (cmm if (pc and cf[i]) else 0) + bms[i] * (hmm if (ph and hf[i]) else 0)
+            for i in range(12)
+        )
+        blk(
+            f"代入示例（{MONTHS[ex_i]}，{'冷季' if cf[ex_i] and pc else ''}{'暖季' if hf[ex_i] and ph else ''}）：",
+            f"ThermalWeight[{MONTHS[ex_i]}] ≈ {tw_ex:.5f}",
+            f"ThermalAlloc[{MONTHS[ex_i]}]  = {tw_ex:.5f} / {sum_tw:.5f} × {t_ext:,.2f}",
+            f"              = {r['thermal_alloc_monthly'][ex_i]:,.2f} kWh"
+        )
+    ln()
+
+    h3("2-D  EV 额外均分 EVAlloc[m]")
+    ln("**目的：** EV 充电电量平均摊到每个月（不区分季节）。")
+    ln()
+    ev_m = ev_ext / 12
+    ln("**公式：**")
+    blk(
+        "EVAlloc[m] = EV_Extra / 12",
+        f"           = {ev_ext:,.2f} / 12",
+        f"           = {ev_m:,.4f} kWh（每月相同）"
+    )
+    ln()
+
+    h3("2-E  合成最终月电量 FinalKWh[m] 与 FinalShare[m]")
+    ln("**公式：**")
+    blk(
+        "FinalKWh[m]  = NormBase[m] + ThermalAlloc[m] + EVAlloc[m]",
+        "FinalShare[m] = FinalKWh[m] / Final_Annual"
+    )
+    ln(f"**代入示例（以 {MONTHS[0]} 为例）：**")
+    blk(
+        f"FinalKWh[{MONTHS[0]}]  = {r['norm_base'][0]:,.2f} + {r['thermal_alloc_monthly'][0]:,.2f} + {ev_m:,.2f}",
+        f"          = {r['final_kwh_monthly'][0]:,.2f} kWh",
+        f"FinalShare[{MONTHS[0]}] = {r['final_kwh_monthly'][0]:,.2f} / {final:,.2f}",
+        f"          = {r['final_share_monthly'][0]:.5f}  ({r['final_share_monthly'][0]*100:.2f}%)"
+    )
+    ln()
+    ln("**Step 2 完整月度表：**")
+    ln()
+    ln("| 月 | BaseShare | SsnMult | ReshapedBase | NormBase | ThermalAlloc | EVAlloc | **FinalKWh** | FinalShare | 标记 |")
+    ln("|---|-----------|---------|-------------|----------|-------------|---------|------------|-----------|------|")
     for i, m in enumerate(MONTHS):
         mk = []
-        if sf["cool"][i] and pc: mk.append("❄制冷")
-        if sf["heat"][i] and ph: mk.append("🔥制热")
-        mark = " ".join(mk) if mk else "—"
-        ln(f"| {m} | {r['seasonal_mult'][i]:.3f} | {r['final_kwh_monthly'][i]:,.1f} | {r['final_share_monthly'][i]*100:.2f}% | {mark} |")
-    ln(f"| **合计** | — | **{sum(r['final_kwh_monthly']):,.1f}** | **{sum(r['final_share_monthly'])*100:.1f}%** | — |")
+        if cf[i] and pc: mk.append("❄")
+        if hf[i] and ph: mk.append("🔥")
+        mark = "".join(mk) if mk else "—"
+        ln(f"| {m} | {bms[i]:.5f} | {r['seasonal_mult'][i]:.3f} | {r['reshaped_base'][i]:,.2f} "
+           f"| {r['norm_base'][i]:,.2f} | {r['thermal_alloc_monthly'][i]:,.2f} "
+           f"| {r['ev_alloc_monthly'][i]:,.2f} | **{r['final_kwh_monthly'][i]:,.2f}** "
+           f"| {r['final_share_monthly'][i]*100:.2f}% | {mark} |")
+    ln(f"| **合计** | {sum(bms):.5f} | — | {r['sum_reshaped']:,.2f} "
+       f"| {sum(r['norm_base']):,.2f} | {sum(r['thermal_alloc_monthly']):,.2f} "
+       f"| {sum(r['ev_alloc_monthly']):,.2f} | **{sum(r['final_kwh_monthly']):,.2f}** "
+       f"| {sum(r['final_share_monthly'])*100:.2f}% | — |")
     ln()
 
-    # Step 3
+    # ── STEP 3 ────────────────────────────────────────────────────────────────
     ln("---")
-    ln("## Step 3 — 24 小时分布")
+    h2("Step 3 — 24 小时分布")
+    ln("在基准曲线上叠加「居住模式修正」和「冷暖尖峰修正」，再叠加 EV 充电。")
     ln()
-    ln("| 小时 | NormShare | FinalHourlyShare | kWh/日 | 标记 |")
-    ln("|------|----------|----------------|--------|------|")
-    fhs  = r["final_hourly_share"]
-    fkd  = r["final_kwh_day"]
-    evd  = calc.p.ev_charging[calc.ev_charging]
+
+    h3("3-A  居住模式修正 OccMult[h]")
+    ln("**规则：** 白天时段（H07–H16）乘以 `daytime_mult`，其余小时 = 1.0。")
+    ln()
+    ln("**公式：**")
+    blk(
+        "OccMult[h] = daytime_mult   如果 h ∈ DaytimeFlag (H07–H16)",
+        "           = 1.0            其他时段"
+    )
+    ln(f"- `daytime_mult[{occupancy}]` = **{occ_v:.3f}**（查表 GLOBAL_occupancy_factors.csv）")
+    ln()
+    ln("| 时段 | 小时范围 | OccMult |")
+    ln("|------|---------|---------|")
+    ln(f"| 白天 | H07–H16 | **{occ_v:.3f}** |")
+    ln(f"| 夜间/早晨 | H00–H06, H17–H23 | 1.000 |")
+    ln()
+
+    h3("3-B  冷暖尖峰修正 PeakMult[h]")
+    ln("**规则：** 尖峰时段叠加制冷/制热乘数，非尖峰时段 = 1.0。")
+    ln()
+    ln("**公式：**")
+    blk(
+        "PeakMult[h] = CoolPeakMult^CoolPeakFlag[h] × HeatPeakMult^HeatPeakFlag[h]",
+        "            （幂次为 0 时该乘数不生效，= 1）"
+    )
+    ln(f"- `CoolPeakMult` = **{cpm:.2f}**（系统参与冷季: {'是' if pc else '否'}）")
+    ln(f"- `HeatPeakMult` = **{hpm:.2f}**（系统参与暖季: {'是' if ph else '否'}）")
+    ln()
+
+    # 列出所有不同 peakmult 的示例小时
+    shown = set()
+    peak_examples = []
+    for h in range(24):
+        pm = r["peak_mult"][h]
+        if pm not in shown:
+            shown.add(pm)
+            tags = []
+            if h in COOL_PEAK_H and pc:  tags.append(f"制冷尖峰×{cpm:.2f}")
+            if h in HEAT_PEAK_H and ph:  tags.append(f"制热尖峰×{hpm:.2f}")
+            note = " + ".join(tags) if tags else "普通小时"
+            peak_examples.append((f"H{h:02d}", pm, note))
+    ln("**典型小时示例：**")
+    ln()
+    ln("| 小时 | PeakMult | 说明 |")
+    ln("|------|---------|------|")
+    for hname, pm, note in peak_examples:
+        ln(f"| {hname} | {pm:.4f} | {note} |")
+    ln()
+
+    h3("3-C  调整 & 归一化 AdjShare → NormShare")
+    ln("**公式：**")
+    blk(
+        "AdjShare[h]  = BaseHourlyShare[h] × OccMult[h] × PeakMult[h]",
+        "NormShare[h] = AdjShare[h] / SUM(AdjShare)   ← 强制 24h 合计 = 1.0"
+    )
+    sum_adj = sum(r["adj_share"])
+    ln(f"**代入示例（以 H07 为例，白天 + {occupancy}）：**")
+    blk(
+        f"AdjShare[H07] = {hb[7]:.5f} × {r['occ_mult'][7]:.3f} × {r['peak_mult'][7]:.4f}",
+        f"              = {r['adj_share'][7]:.5f}",
+        f"NormShare[H07] = {r['adj_share'][7]:.5f} / {sum_adj:.5f}",
+        f"              = {r['norm_share'][7]:.5f}"
+    )
+    ln()
+
+    h3("3-D  叠加 EV 充电 & 合成 FinalHourlyShare")
+    ln("**目的：** EV 充电按充电模式分布到各小时，与非 EV 用电合并。")
+    ln()
+    ln("**公式：**")
+    blk(
+        "NonEV_kWh[h]       = (Base_Annual + Thermal_Extra) / 365 × NormShare[h]",
+        f"EV_kWh[h]          = (EV_Extra / 365) × EVChargingDist[h][{ev_charging}]",
+        "FinalKWhPerDay[h]  = NonEV_kWh[h] + EV_kWh[h]",
+        "FinalHourlyShare[h]= FinalKWhPerDay[h] / (Final_Annual / 365)"
+    )
+    d_non_ev = (base + t_ext) / 365
+    d_ev     = ev_ext / 365
+    ln(f"- 日均非EV电量 = ({base:,.0f} + {t_ext:,.0f}) / 365 = **{d_non_ev:.4f} kWh**")
+    ln(f"- 日均EV电量   = {ev_ext:,.0f} / 365 = **{d_ev:.4f} kWh**")
+    ln()
+    ln(f"**代入示例（以 H00 为例）：**")
+    blk(
+        f"NonEV_kWh[H00] = {d_non_ev:.4f} × {r['norm_share'][0]:.5f}",
+        f"               = {r['non_ev_kwh'][0]:.4f} kWh",
+        f"EV_kWh[H00]    = {d_ev:.4f} × {ev_dist[0]:.3f}  [EVChargingDist]",
+        f"               = {r['ev_kwh_hourly'][0]:.4f} kWh",
+        f"FinalKWhPerDay[H00] = {r['final_kwh_day'][0]:.4f} kWh",
+        f"FinalHourlyShare[H00] = {r['final_hourly_share'][0]:.5f}"
+    )
+    ln()
+    ln("**Step 3 完整 24 小时表：**")
+    ln()
+    ln("| 小时 | BaseShr | OccMlt | PeakMlt | AdjShr | NormShr | NonEV kWh | EV kWh | kWh/日 | **FinalShr** | 标记 |")
+    ln("|------|---------|--------|---------|--------|---------|----------|--------|--------|------------|------|")
+    fhs = r["final_hourly_share"]
+    fkd = r["final_kwh_day"]
     for h in range(24):
         tags = []
-        if h in DAYTIME_H:            tags.append("白天")
-        if h in COOL_PEAK_H and pc:   tags.append("❄冷峰")
-        if h in HEAT_PEAK_H and ph:   tags.append("🔥暖峰")
-        if evd[h] > 0:                tags.append(f"EV{evd[h]:.3f}")
+        if h in DAYTIME_H:           tags.append("白天")
+        if h in COOL_PEAK_H and pc:  tags.append("❄冷峰")
+        if h in HEAT_PEAK_H and ph:  tags.append("🔥暖峰")
+        if ev_dist[h] > 0:           tags.append(f"EV{ev_dist[h]:.3f}")
         note = " ".join(tags) if tags else "—"
-        ln(f"| H{h:02d} | {r['norm_share'][h]:.5f} | {fhs[h]:.5f} | {fkd[h]:.4f} | {note} |")
-    ln(f"| **合计** | — | **{sum(fhs):.5f}** | **{sum(fkd):.4f}** | — |")
+        ln(f"| H{h:02d} | {hb[h]:.5f} | {r['occ_mult'][h]:.3f} | {r['peak_mult'][h]:.4f} "
+           f"| {r['adj_share'][h]:.5f} | {r['norm_share'][h]:.5f} "
+           f"| {r['non_ev_kwh'][h]:.4f} | {r['ev_kwh_hourly'][h]:.4f} "
+           f"| {fkd[h]:.4f} | **{fhs[h]:.5f}** | {note} |")
+    ln(f"| **合计** | {sum(hb):.5f} | — | — "
+       f"| {sum(r['adj_share']):.5f} | {sum(r['norm_share']):.5f} "
+       f"| {sum(r['non_ev_kwh']):.4f} | {sum(r['ev_kwh_hourly']):.4f} "
+       f"| {sum(fkd):.4f} | **{sum(fhs):.5f}** | — |")
+    ln()
+    ln(f"> ✅ sum(NormShare) = {sum(r['norm_share']):.6f} ≈ 1.0")
+    ln(f"> ✅ sum(FinalHourlyShare) = {sum(fhs):.6f} ≈ 1.0")
     ln()
 
-    # Step 4
+    # ── STEP 4 ────────────────────────────────────────────────────────────────
     ln("---")
-    ln("## Step 4 — 最终输出 (输入电池推荐公式)")
+    h2("Step 4 — 派生三大用电需求（最终输出）")
+    ln("把 24h 分布折叠成三个时段指标，直接替换旧版固定值，输入电池推荐公式。")
     ln()
-    ln("| 指标 | 时段 | 数值 (kWh/天) | 占日均比 |")
-    ln("|------|------|-------------|---------|")
-    ln(f"| 日均用电 | 全天 | **{r['daily_avg']:.4f}** | 100.00% |")
-    ln(f"| 白天用电 | H07–H16 | {r['daytime_kwh']:.4f} | {r['daytime_pct']:.2f}% |")
-    ln(f"| 晚高峰用电 | H17–H20 | {r['evening_peak_kwh']:.4f} | {r['evening_peak_pct']:.2f}% |")
-    ln(f"| 整夜用电 | H17–H06 | {r['overnight_kwh']:.4f} | {r['overnight_pct']:.2f}% |")
+
+    d_avg = r["daily_avg"]
+    DT_H = list(range(7, 17))
+    EP_H = list(range(17, 21))
+    ON_H = list(range(17, 24)) + list(range(0, 7))
+
+    h3("4-A  日均用电")
+    blk(
+        "日均用电 = Final_Annual / 365",
+        f"        = {final:,.2f} / 365",
+        f"        = {d_avg:.4f} kWh/天"
+    )
+
+    h3("4-B  白天用电（H07–H16）")
+    dt_s = sum(fhs[h] for h in DT_H)
+    blk(
+        "白天用电 = 日均 × Σ FinalHourlyShare[H07–H16]",
+        f"        = {d_avg:.4f} × {dt_s:.5f}",
+        f"        = {r['daytime_kwh']:.4f} kWh/天  ({r['daytime_pct']:.2f}%)"
+    )
+
+    h3("4-C  晚高峰用电（H17–H20）")
+    ep_s = sum(fhs[h] for h in EP_H)
+    blk(
+        "晚高峰用电 = 日均 × Σ FinalHourlyShare[H17–H20]",
+        f"          = {d_avg:.4f} × {ep_s:.5f}",
+        f"          = {r['evening_peak_kwh']:.4f} kWh/天  ({r['evening_peak_pct']:.2f}%)"
+    )
+
+    h3("4-D  整夜用电（H17–H06）")
+    on_s = sum(fhs[h] for h in ON_H)
+    blk(
+        "整夜用电 = 日均 × Σ FinalHourlyShare[H17–H06]",
+        f"        = {d_avg:.4f} × {on_s:.5f}",
+        f"        = {r['overnight_kwh']:.4f} kWh/天  ({r['overnight_pct']:.2f}%)"
+    )
+
+    h3("最终输出汇总")
+    ln("| 指标 | 时段 | kWh/天 | 占日均比 | 旧版固定值 | 变化 |")
+    ln("|------|------|-------|---------|----------|------|")
+    ln(f"| 日均用电 | 全天 | **{d_avg:.4f}** | 100.00% | — | — |")
+    ln(f"| 白天用电 | H07–H16 | {r['daytime_kwh']:.4f} | **{r['daytime_pct']:.2f}%** | 43.88% | {r['daytime_pct']-43.88:+.2f}pp |")
+    ln(f"| 晚高峰用电 | H17–H20 | {r['evening_peak_kwh']:.4f} | **{r['evening_peak_pct']:.2f}%** | 22.10% | {r['evening_peak_pct']-22.10:+.2f}pp |")
+    ln(f"| 整夜用电 | H17–H06 | {r['overnight_kwh']:.4f} | **{r['overnight_pct']:.2f}%** | 59.60% | {r['overnight_pct']-59.60:+.2f}pp |")
     ln()
-    ln("> **旧版固定值对照:** 白天 43.88% | 晚高峰 22.10% | 整夜 59.60%")
+
+    # 差异来源说明
+    ln("**差异来源说明：**")
+    ln()
+    if occupancy != "No modification (default/skip)":
+        ln(f"- 白天 OccMult = **{occ_v:.3f}** [{occupancy}]")
+    if pc or ph:
+        ln(f"- 冷暖峰修正 [{system}]：CoolPeakMult = {cpm:.2f}，HeatPeakMult = {hpm:.2f}")
+    if ev_ext > 0:
+        ln(f"- EV 充电分布 [{ev_charging}] 叠加到各小时")
     ln()
 
     ln("---")
