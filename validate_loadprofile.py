@@ -4,14 +4,25 @@ validate_loadprofile.py — LoadProfile 计算验证脚本
 基于 [PRD]SalesAgent V1.12 § 3.1
 
 用法:
+  # TXT/MD 输入（推荐）：地址 + 5 道题答案
+  python validate_loadprofile.py --input input_example.txt
+
+  # PRD 标准示例验证
   python validate_loadprofile.py --validate
+
+  # 批量 6 个场景
   python validate_loadprofile.py --batch
-  python validate_loadprofile.py --state NSW --system "Heat pump" --usage Medium \
-      --mileage 10000 --occupancy "Mostly away" --ev-charging mostly_overnight
+
+  # CLI 直接传参
+  python validate_loadprofile.py --state NSW --system "Heat pump (heating & cooling)" \
+      --usage Medium --mileage 10000 --occupancy "Mostly away during the day" \
+      --ev-charging mostly_overnight
+
+  # JSON 配置文件（支持数组多场景）
   python validate_loadprofile.py --config my_cases.json
 """
 
-import argparse, csv, json, sys
+import argparse, csv, json, re, sys
 from pathlib import Path
 
 # ── ANSI 颜色（不支持的终端自动降级）────────────────────────────────────────
@@ -52,11 +63,146 @@ def chk(name, got, expected, tol=1.0):
     return ok
 
 
+# ── 地址 → 州 ────────────────────────────────────────────────────────────────
+_STATE_CODES = ["ACT","NSW","NT","QLD","SA","TAS","VIC","WA"]
+
+def _postcode_to_state(pc):
+    if 2600 <= pc <= 2618 or 2900 <= pc <= 2920: return "ACT"
+    if 200  <= pc <= 299:                         return "ACT"
+    if 1000 <= pc <= 2999:                        return "NSW"
+    if 3000 <= pc <= 3999 or 8000 <= pc <= 8999: return "VIC"
+    if 4000 <= pc <= 4999 or 9000 <= pc <= 9999: return "QLD"
+    if 5000 <= pc <= 5999:                        return "SA"
+    if 6000 <= pc <= 6999:                        return "WA"
+    if 7000 <= pc <= 7999:                        return "TAS"
+    if 800  <= pc <= 999:                         return "NT"
+    return None
+
+def address_to_state(address, default="NSW"):
+    """从地址字符串提取 AU 州代码（不区分大小写）。
+    Step1: 找州缩写；Step2: 找邮编；Step3: 返回 default。"""
+    upper = address.upper()
+    for code in _STATE_CODES:
+        if re.search(rf'\b{code}\b', upper):
+            return code
+    m = re.search(r'\b(\d{4})\b', address)
+    if m:
+        state = _postcode_to_state(int(m.group(1)))
+        if state: return state
+    return default
+
+
+# ── 5 道题 UI 标签 → 内部参数 ────────────────────────────────────────────────
+_Q1 = {
+    "mostly away during the day":  "Mostly away during the day",
+    "working from home":           "Working from home",
+    "someone always at home":      "Someone always at home",
+    "skip": "No modification (default/skip)",
+    "":     "No modification (default/skip)",
+}
+_Q2 = {
+    "no heating or cooling system":   "No heating or cooling system",
+    "air conditioning":               "Air conditioning",
+    "electric heating":               "Electric heating",
+    "heat pump (heating & cooling)":  "Heat pump (heating & cooling)",
+    "heat pump":                      "Heat pump (heating & cooling)",
+    "skip": "No heating or cooling system",
+    "":     "No heating or cooling system",
+}
+_Q3 = {
+    "low": "Low", "medium": "Medium", "high": "High", "very high": "Very high",
+    "skip": "Medium", "": "Medium",
+}
+_Q4 = {
+    "no electric vehicle": 0, "skip": 0, "": 0,
+    "5,000 km": 5000,  "5000 km": 5000,  "5000": 5000,
+    "10,000 km": 10000,"10000 km": 10000,"10000": 10000,
+    "15,000 km": 15000,"15000 km": 15000,"15000": 15000,
+    "20,000 km": 20000,"20000 km": 20000,"20000": 20000,
+    "25,000+ km": 25000,"25000+ km": 25000,"25000": 25000,
+}
+_Q5 = {
+    "mostly overnight":          "mostly_overnight",
+    "mixed day and night":       "mixed_day_and_night",
+    "mostly daytime":            "mostly_daytime",
+    "solar-optimized charging":  "solar_optimized",
+    "solar optimized charging":  "solar_optimized",
+    "solar optimized":           "solar_optimized",
+    "skip": "mostly_overnight",
+    "":     "mostly_overnight",
+}
+
+def parse_answers(q1="skip", q2="skip", q3="skip", q4="skip", q5="skip") -> dict:
+    """
+    将 5 道题 UI 标签映射为内部计算参数，并应用题目逻辑：
+      - Q3（使用强度）只在 Q2 != 'No heating or cooling system' 时有意义
+      - Q5（充电时间）只在 Q4 != 'No electric vehicle' 时有意义
+    """
+    system      = _Q2.get(q2.lower().strip(), "No heating or cooling system")
+    mileage     = _Q4.get(q4.lower().strip(), 0)
+    occupancy   = _Q1.get(q1.lower().strip(), "No modification (default/skip)")
+
+    # 题目逻辑
+    has_system  = system  != "No heating or cooling system"
+    has_ev      = mileage > 0
+    usage_level = _Q3.get(q3.lower().strip(), "Medium") if has_system  else "Medium"
+    ev_charging = _Q5.get(q5.lower().strip(), "mostly_overnight") if has_ev else "mostly_overnight"
+
+    skipped = []
+    if not has_system and q3.lower().strip() not in ("skip",""):
+        skipped.append(f"Q3 已跳过（Q2=No system，使用强度不适用）")
+    if not has_ev and q5.lower().strip() not in ("skip",""):
+        skipped.append(f"Q5 已跳过（Q4=No EV，充电时间不适用）")
+
+    return dict(system=system, usage_level=usage_level, mileage=mileage,
+                occupancy=occupancy, ev_charging=ev_charging, _skipped=skipped)
+
+
+def parse_input_file(path):
+    """
+    解析 TXT/MD 输入文件，格式：
+        address: <地址>
+        q1: <选项>
+        q2: <选项>
+        q3: <选项>   # 可留空或 skip
+        q4: <选项>
+        q5: <选项>   # 可留空或 skip
+    返回可直接传给 LoadProfileCalculator 的 kwargs dict。
+    """
+    data = {}
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"): continue
+            if ":" in line:
+                k, _, v = line.partition(":")
+                data[k.strip().lower()] = v.strip()
+
+    address = data.get("address", "")
+    state   = address_to_state(address) if address else data.get("state", "NSW").upper()
+
+    answers = parse_answers(
+        q1=data.get("q1", "skip"),
+        q2=data.get("q2", "skip"),
+        q3=data.get("q3", "skip"),
+        q4=data.get("q4", "skip"),
+        q5=data.get("q5", "skip"),
+    )
+
+    if answers["_skipped"] and sys.stdout.isatty():
+        for msg in answers["_skipped"]:
+            print(f"  {dim('⚠ ' + msg)}")
+
+    kwargs = {k: v for k, v in answers.items() if not k.startswith("_")}
+    kwargs["state"] = state
+    return kwargs, address
+
+
 # ── 参数加载 ──────────────────────────────────────────────────────────────────
 MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
 class Params:
-    def __init__(self, d="参数"):
+    def __init__(self, d="参数_used"):
         d = Path(d)
         self.base_annual  = self._kv(d/"AU_base_annual_kwh.csv",           "state",       "base_annual_kwh",       float)
         self.hvac_load    = self._kv(d/"AU_hvac_thermal_load.csv",          "system",      "base_thermal_load_kwh", float)
@@ -70,29 +216,34 @@ class Params:
 
     def _kv(self, path, kc, vc, cast=str):
         out = {}
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 out[row[kc].strip()] = cast(row[vc])
         return out
 
     def _full(self, path, kc):
         out = {}
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 k = row[kc].strip()
-                out[k] = {c: float(v) for c, v in row.items() if c != kc and v.replace('.','').replace('-','').lstrip('-').replace('.','').isdigit()}
+                parsed = {}
+                for c, v in row.items():
+                    if c == kc: continue
+                    try: parsed[c] = float(v)
+                    except (ValueError, TypeError): pass
+                out[k] = parsed
         return out
 
     def _row(self, path, kc, cols):
         out = {}
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 out[row[kc].strip()] = [float(row[c]) for c in cols]
         return out
 
     def _season(self, path):
         out = {}
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 s = row["state"].strip()
                 out[s] = {"cool": [int(row[f"{m}_cool"]) for m in MONTHS],
@@ -101,7 +252,7 @@ class Params:
 
     def _ev(self, path):
         profiles = {p: [] for p in ["mostly_overnight","mixed_day_and_night","mostly_daytime","solar_optimized"]}
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 for p in profiles:
                     profiles[p].append(float(row[p]) if row.get(p) else 0.0)
@@ -628,8 +779,10 @@ def main():
   python validate_loadprofile.py --state NSW --system "Heat pump" --usage Medium --mileage 10000 --occupancy "Mostly away" --ev-charging mostly_overnight
   python validate_loadprofile.py --config my_cases.json
   python validate_loadprofile.py --skip-all --state NSW
+  python validate_loadprofile.py --input input.txt
         """
     )
+    ap.add_argument("--input",       type=str,                   help="TXT/MD 输入文件（地址+5道题）")
     ap.add_argument("--validate",    action="store_true",        help="运行 PRD 标准示例并校验期望值")
     ap.add_argument("--batch",       action="store_true",        help="运行全部 6 个内置批量场景（汇总表）")
     ap.add_argument("--skip-all",    action="store_true",        help="模拟全部题目跳过（旧版行为）")
@@ -640,12 +793,16 @@ def main():
     ap.add_argument("--mileage",     type=int, default=0)
     ap.add_argument("--occupancy",   type=str, default="No modification (default/skip)")
     ap.add_argument("--ev-charging", type=str, default="mostly_overnight", dest="ev_charging")
-    ap.add_argument("--params-dir",  type=str, default="参数",   dest="params_dir")
+    ap.add_argument("--params-dir",  type=str, default="参数_used", dest="params_dir")
     args = ap.parse_args()
 
     params = Params(args.params_dir)
 
-    if args.validate:
+    if args.input:
+        kw, address = parse_input_file(args.input)
+        print(f"  {dim('地址: ' + address + '  →  州: ' + kw['state'])}") if address else None
+        LoadProfileCalculator(params, verbose=True, **kw).run()
+    elif args.validate:
         run_validate(params)
     elif args.batch:
         run_batch(params)

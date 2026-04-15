@@ -1,0 +1,8 @@
+parameter,value
+ev_efficiency_kwh_per_km,0.18
+mileage_option_0,0
+mileage_option_1,5000
+mileage_option_2,10000
+mileage_option_3,15000
+mileage_option_4,20000
+mileage_option_5,25000

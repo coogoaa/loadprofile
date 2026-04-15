@@ -1,0 +1,6 @@
+ui_label,internal_key,show_condition,note
+Low,Low,Q2 != No system,低强度
+Medium,Medium,Q2 != No system,中等强度
+High,High,Q2 != No system,高强度
+Very high,Very high,Q2 != No system,极高强度
+skip,Medium,Q2 != No system,跳过→默认Medium

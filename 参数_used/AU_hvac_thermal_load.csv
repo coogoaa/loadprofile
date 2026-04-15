@@ -1,0 +1,5 @@
+system,base_thermal_load_kwh
+No heating or cooling system,0
+Air conditioning,0
+Electric heating,2500
+Heat pump (heating & cooling),1800
