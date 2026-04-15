@@ -1,0 +1,6 @@
+address: 12 Hobart Road, Sandy Bay TAS 7005
+q1: Working from home
+q2: Electric heating
+q3: Very high
+q4: 15,000 km
+q5: Mixed day and night
