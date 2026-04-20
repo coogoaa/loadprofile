@@ -213,6 +213,7 @@ class Params:
         self.hourly_share = self._row(d/"AU_hourly_share.csv",              "state",       [f"H{h:02d}" for h in range(24)])
         self.occupancy    = self._kv(d/"GLOBAL_occupancy_factors.csv",      "occupancy",   "daytime_mult",          float)
         self.ev_charging  = self._ev(d/"AU_ev_charging_profiles.csv")
+        self.hourly_flags = self._hourly_flags(d/"AU_hourly_peak_flags.csv")
         self.ev_efficiency= 0.18
 
     def _kv(self, path, kc, vc, cast=str):
@@ -259,13 +260,20 @@ class Params:
                     profiles[p].append(float(row[p]) if row.get(p) else 0.0)
         return profiles
 
+    def _hourly_flags(self, path):
+        cool_peak, heat_peak, daytime = set(), set(), set()
+        with open(path, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                h = int(row["hour"])
+                if int(row["cool_peak_flag"]): cool_peak.add(h)
+                if int(row["heat_peak_flag"]): heat_peak.add(h)
+                if int(row["daytime_flag"]):   daytime.add(h)
+        return {"cool_peak": cool_peak, "heat_peak": heat_peak, "daytime": daytime}
+
 
 # ── 核心计算器 ────────────────────────────────────────────────────────────────
 COOL_SYS = {"Air conditioning", "Heat pump (heating & cooling)"}
 HEAT_SYS = {"Electric heating", "Heat pump (heating & cooling)"}
-DAYTIME_H   = set(range(7, 17))
-COOL_PEAK_H = set(range(14, 19))
-HEAT_PEAK_H = set(range(6, 9)) | set(range(18, 22))
 
 class LoadProfileCalculator:
     def __init__(self, params, state, system, usage_level,
@@ -306,9 +314,13 @@ class LoadProfileCalculator:
         print(f"  {self.state} 制热月 (HeatFlag=1) : {', '.join(hm) or '无'}")
         print(f"  系统参与冷季 : {green('是 ✓') if pc else dim('否')}  [{self.system}]")
         print(f"  系统参与暖季 : {green('是 ✓') if ph else dim('否')}  [{self.system}]")
-        print(f"  白天时段  DaytimeFlag=1  : H07–H16 (07:00–17:00)")
-        print(f"  制冷尖峰  CoolPeakFlag=1 : H14–H18 (14:00–19:00)")
-        print(f"  制热尖峰  HeatPeakFlag=1 : H06–H08 & H18–H21")
+        hf = self.p.hourly_flags
+        dt_hrs  = sorted(hf["daytime"])
+        cp_hrs  = sorted(hf["cool_peak"])
+        hp_hrs  = sorted(hf["heat_peak"])
+        print(f"  白天时段  DaytimeFlag=1  : {', '.join(f'H{h:02d}' for h in dt_hrs)}")
+        print(f"  制冷尖峰  CoolPeakFlag=1 : {', '.join(f'H{h:02d}' for h in cp_hrs)}")
+        print(f"  制热尖峰  HeatPeakFlag=1 : {', '.join(f'H{h:02d}' for h in hp_hrs)}")
 
     # ─────────────────────────────────────────────────────────────────────────
     def _step1(self) -> dict:
@@ -519,16 +531,20 @@ class LoadProfileCalculator:
         ev_dist = self.p.ev_charging[self.ev_charging]
 
         # 3.1 OccMult
+        DAYTIME_H   = self.p.hourly_flags["daytime"]
+        COOL_PEAK_H = self.p.hourly_flags["cool_peak"]
+        HEAT_PEAK_H = self.p.hourly_flags["heat_peak"]
         occ = [occ_val if h in DAYTIME_H else 1.0 for h in range(24)]
 
         if self.verbose:
             sub("Step 3.1  居住占用模式修正 OccMult[h]")
             print(f"  目的 : 白天时段（H07–H16）根据用户是否在家，放大或压缩用电比例")
             print(f"  公式 :")
-            print(f"    OccMult[h] = DaytimeFactor[occupancy]   如果 h ∈ 白天时段 (H07–H16)")
+            dt_range = f"H{min(DAYTIME_H):02d}–H{max(DAYTIME_H):02d}"
+            print(f"    OccMult[h] = DaytimeFactor[occupancy]   如果 h ∈ 白天时段 ({dt_range})")
             print(f"               = 1.0                        如果 h ∈ 夜间（不调整）")
             print(f"  DaytimeFactor[{self.occupancy}] = {bold(str(occ_val))}")
-            print(f"  → 白天 H07–H16: OccMult = {bold(str(occ_val))}")
+            print(f"  → 白天 {dt_range}: OccMult = {bold(str(occ_val))}")
             print(f"  → 其余小时    : OccMult = 1.0")
 
         # 3.2 PeakMult
@@ -540,9 +556,12 @@ class LoadProfileCalculator:
             sub("Step 3.2  峰时段修正 PeakMult[h]")
             print(f"  目的 : 制冷/制热设备在特定时段集中用电，放大对应小时的负荷比例")
             print(f"  公式 :")
-            print(f"    CoolPeak[h] = CoolPeakMult  如果 系统参与冷季 AND h ∈ H14–H18 (制冷尖峰)")
+            cp_range = f"H{min(COOL_PEAK_H):02d}–H{max(COOL_PEAK_H):02d}"
+            hp_parts = sorted(HEAT_PEAK_H)
+            hp_range = f"H{hp_parts[0]:02d}–H{hp_parts[2]:02d}, H{hp_parts[3]:02d}–H{hp_parts[-1]:02d}"
+            print(f"    CoolPeak[h] = CoolPeakMult  如果 系统参与冷季 AND h ∈ {cp_range} (制冷尖峰)")
             print(f"                = 1.0           否则")
-            print(f"    HeatPeak[h] = HeatPeakMult  如果 系统参与暖季 AND h ∈ H06–H08, H18–H21 (制热尖峰)")
+            print(f"    HeatPeak[h] = HeatPeakMult  如果 系统参与暖季 AND h ∈ {hp_range} (制热尖峰)")
             print(f"                = 1.0           否则")
             print(f"    PeakMult[h] = CoolPeak[h] × HeatPeak[h]")
             print(f"  参数 : CoolPeakMult={cpm:.2f}  HeatPeakMult={hpm:.2f}")
@@ -575,6 +594,16 @@ class LoadProfileCalculator:
                     f"{norm[7]:.5f}")
 
         # 3.4 NonEV / EV / FinalHourlyShare
+        # ─────────────────────────────────────────────────────────────────
+        # 说明：下方 d_non_ev / d_ev / total_d 均使用 "年电量 / 365" 作为
+        # 「平均日」简化估算。本模型刻意不展开为 12 个月各自的标准日：
+        #   1) 24h 占比对应"全年平均日"，非按月动态形状
+        #   2) 冷峰/暖峰乘数全年无条件叠加，不判断当前月份是否为冷/暖季
+        # 月度差异通过 Step 2 的月度表独立输出，与 24h 表不做交叉加权。
+        # 该设计源自原始 Excel 简化模型（副本_简化版Germany_Load_Profile_Simulator.xlsx），
+        # 明示"average-day shape, not a dispatch model, no 8,760 hourly expansion"。
+        # 如需按月标准日（账单对账场景），需升级为 12×24 矩阵模型。
+        # ─────────────────────────────────────────────────────────────────
         d_non_ev = (base + t_ext) / 365
         d_ev     = ev_ext / 365
         non_ev   = [d_non_ev * norm[h] for h in range(24)]
