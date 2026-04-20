@@ -435,6 +435,8 @@ EV用电[h]    = (EV额外/365) × EV充电分布[h]     <span class="c">日均E
   [hdrs[3],bdys[3],chs[3]].forEach(e=>e&&e.classList.add('open'));
 }
 
+let remoteData=null;
+
 function upd(){
   const sys=document.getElementById('s-q2').value,km=document.getElementById('s-q4').value;
   document.getElementById('f-q3').classList.toggle('hidden',sys==='No heating or cooling system');
@@ -467,15 +469,13 @@ const EVC_MAP={
   'MOSTLY_DAYTIME':'mostly_daytime','SOLAR_OPTIMIZED_CHARGING':'solar_optimized',
 };
 
-let remoteData=null;
-
 function fetchDesign(){
   const did=document.getElementById('s-designid').value.trim();
   if(!did){document.getElementById('fetch-status').className='fetch-status err';document.getElementById('fetch-status').textContent='请输入 Design ID';return;}
   const btn=document.getElementById('btn-fetch');
   btn.disabled=true;btn.textContent='加载中…';
   document.getElementById('fetch-status').className='fetch-status';document.getElementById('fetch-status').textContent='';
-  fetch(`https://file.greensketch.ai/debug/${did}/correction_factor_output.json`)
+  fetch(`https://file.greensketch.ai/marketing/test/debug/${did}/correction_factor_output.json`)
     .then(r=>{if(!r.ok)throw new Error(`HTTP ${r.status}`);return r.json();})
     .then(data=>{
       remoteData=data;
@@ -559,7 +559,6 @@ function renderCompare(r,data){
   const allChecks=[...summaryChecks,...monthPctChecks,...monthKwhChecks,...hourPctChecks,...hourKwhChecks];
   const totalFail=allChecks.filter(c=>c.cls==='cmp-fail').length;
   const totalPass=allChecks.filter(c=>c.cls==='cmp-ok').length;
-  const inputMatch=inputChecks.filter(c=>c.local===c.remote).length;
 
   function makeTable(rows){
     let h='<table class="cmp-table"><tr><th style="text-align:left">字段</th><th>本地计算</th><th>远端数据</th><th>差值</th><th>相对差</th><th>状态</th></tr>';
@@ -568,10 +567,9 @@ function renderCompare(r,data){
   }
 
   function makeInputTable(rows){
-    let h='<table class="cmp-table"><tr><th style="text-align:left">参数</th><th style="text-align:left">本地值</th><th style="text-align:left">远端值</th><th>匹配</th></tr>';
+    let h='<table class="cmp-table"><tr><th style="text-align:left">参数</th><th style="text-align:left">本地值</th><th style="text-align:left">远端值</th></tr>';
     rows.forEach(c=>{
-      const match=c.local===c.remote;
-      h+=`<tr><td>${c.label}</td><td style="text-align:left">${c.local||'-'}</td><td style="text-align:left">${c.remote||'-'}</td><td class="${match?'cmp-ok':'cmp-fail'}">${match?'✅':'❌'}</td></tr>`;
+      h+=`<tr><td>${c.label}</td><td style="text-align:left">${c.local||'-'}</td><td style="text-align:left">${c.remote||'-'}</td></tr>`;
     });
     h+='</table>';return h;
   }
@@ -581,10 +579,10 @@ function renderCompare(r,data){
       <span class="cmp-icon">${totalFail===0?'🎉':'⚠️'}</span>
       <span class="cmp-title">数据校验结果</span>
       <span class="cmp-badge ${totalFail===0?'pass':'fail'}">${totalFail===0?'全部通过':totalFail+' 项不匹配'}</span>
-      <span style="font-size:11px;color:var(--dim)">输入参数 ${inputMatch}/${inputChecks.length} · 数值 ${totalPass}/${allChecks.length}</span>
+      <span style="font-size:11px;color:var(--dim)">数值 ${totalPass}/${allChecks.length}</span>
     </div>
     <div class="cmp-body">
-      <div class="cmp-section"><div class="cmp-section-title">输入参数匹配</div>${makeInputTable(inputChecks)}</div>
+      <div class="cmp-section"><div class="cmp-section-title">输入参数</div>${makeInputTable(inputChecks)}</div>
       <div class="cmp-section"><div class="cmp-section-title">汇总指标</div>${makeTable(summaryChecks)}</div>
       <div class="cmp-section"><div class="cmp-section-title">finalMonthPercents（月用电占比）</div>${monthPctChecks.length?makeTable(monthPctChecks):'<span style="color:var(--dim);font-size:11px">远端数据中无此字段</span>'}</div>
       <div class="cmp-section"><div class="cmp-section-title">finalMonthlyElectricity（每月用电量 kWh）</div>${monthKwhChecks.length?makeTable(monthKwhChecks):'<span style="color:var(--dim);font-size:11px">远端数据中无此字段</span>'}</div>
