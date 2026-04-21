@@ -143,9 +143,9 @@ tr.cphp{background:rgba(140,80,200,.08);}
 <aside>
   <div class="slabel">数据校验</div>
   <div class="design-field">
-    <label>Design ID</label>
-    <input type="text" id="s-designid" placeholder="输入 designId …">
-    <button class="btn-fetch" id="btn-fetch" onclick="fetchDesign()">拉取远端数据并校验</button>
+    <label>Project ID</label>
+    <input type="text" id="s-designid" placeholder="输入 projectId …">
+    <button class="btn-fetch" id="btn-fetch" onclick="fetchProject()">拉取远端数据并校验</button>
     <div id="fetch-status" class="fetch-status"></div>
   </div>
   <div class="tolerance-field">
@@ -469,13 +469,14 @@ const EVC_MAP={
   'MOSTLY_DAYTIME':'mostly_daytime','SOLAR_OPTIMIZED_CHARGING':'solar_optimized',
 };
 
-function fetchDesign(){
+function fetchProject(){
   const did=document.getElementById('s-designid').value.trim();
-  if(!did){document.getElementById('fetch-status').className='fetch-status err';document.getElementById('fetch-status').textContent='请输入 Design ID';return;}
+  if(!did){document.getElementById('fetch-status').className='fetch-status err';document.getElementById('fetch-status').textContent='请输入 project ID';return;}
   const btn=document.getElementById('btn-fetch');
   btn.disabled=true;btn.textContent='加载中…';
   document.getElementById('fetch-status').className='fetch-status';document.getElementById('fetch-status').textContent='';
-  fetch(`https://file.greensketch.ai/marketing/test/debug/${did}/correction_factor_output.json`)
+  const directUrl=`https://file.greensketch.ai/marketing/test/debug/${did}/correction_factor_output.json`;
+  fetch(directUrl)
     .then(r=>{if(!r.ok)throw new Error(`HTTP ${r.status}`);return r.json();})
     .then(data=>{
       remoteData=data;
@@ -598,7 +599,7 @@ function renderCompare(r,data){
   cmpEl.innerHTML=html;
 }
 
-document.getElementById('s-designid').addEventListener('keydown',e=>{if(e.key==='Enter')fetchDesign();});
+document.getElementById('s-designid').addEventListener('keydown',e=>{if(e.key==='Enter')fetchProject();});
 </script>
 </body>
 </html>
