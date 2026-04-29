@@ -449,24 +449,24 @@ upd();
 
 // ── 数据校验逻辑 ──────────────────────────────────────────────────────────────
 const OCC_MAP={
-  'MOSTLY_AWAY_DURING_THE_DAY':'Mostly away during the day',
-  'WORKING_FROM_HOME':'Working from home',
-  'SOMEONE_ALWAYS_AT_HOME':'Someone always at home',
+  'mostly_away_during_the_day':'Mostly away during the day',
+  'working_from_home':'Working from home',
+  'someone_always_at_home':'Someone always at home',
 };
 const HVAC_MAP={
-  'NO_HEATING_OR_COOLING_SYSTEM':'No heating or cooling system',
-  'AIR_CONDITIONING':'Air conditioning',
-  'ELECTRIC_HEATING':'Electric heating',
-  'HEAT_PUMP':'Heat pump (heating & cooling)',
+  'no_heating_or_cooling_system':'No heating or cooling system',
+  'air_conditioning':'Air conditioning',
+  'electric_heating':'Electric heating',
+  'heat_pump':'Heat pump (heating & cooling)',
 };
-const USAGE_MAP={'LOW':'Low','MEDIUM':'Medium','HIGH':'High','VERY_HIGH':'Very high'};
+const USAGE_MAP={'low':'Low','medium':'Medium','high':'High','very_high':'Very high'};
 const EV_MAP={
-  'NO_ELECTRIC_VEHICLE':'0','5000KM':'5000','10000KM':'10000',
-  '15000KM':'15000','20000KM':'20000','25000+KM':'25000',
+  'no_electric_vehicle':'0','5000km':'5000','10000km':'10000',
+  '15000km':'15000','20000km':'20000','25000+km':'25000',
 };
 const EVC_MAP={
-  'MOSTLY_OVERNIGHT':'mostly_overnight','MIXED_DAY_AND_NIGHT':'mixed_day_and_night',
-  'MOSTLY_DAYTIME':'mostly_daytime','SOLAR_OPTIMIZED_CHARGING':'solar_optimized',
+  'mostly_overnight':'mostly_overnight','mixed_day_and_night':'mixed_day_and_night',
+  'mostly_daytime':'mostly_daytime','solar_optimized_charging':'solar_optimized',
 };
 
 function fetchProject(){
@@ -497,11 +497,31 @@ function fetchProject(){
 function applyRemoteInputs(data){
   const inp=data.inputFactors||{};
   if(data.state){document.getElementById('s-state').value=data.state;}
-  if(inp.occupancyPattern&&OCC_MAP[inp.occupancyPattern]){document.getElementById('s-q1').value=OCC_MAP[inp.occupancyPattern];}
-  if(inp.hvacSystemType&&HVAC_MAP[inp.hvacSystemType]){document.getElementById('s-q2').value=HVAC_MAP[inp.hvacSystemType];}
-  if(inp.usageLevel&&USAGE_MAP[inp.usageLevel]){document.getElementById('s-q3').value=USAGE_MAP[inp.usageLevel];}
-  if(inp.evMileage&&EV_MAP[inp.evMileage]!=null){document.getElementById('s-q4').value=EV_MAP[inp.evMileage];}
-  if(inp.evChargingHabit&&EVC_MAP[inp.evChargingHabit]){document.getElementById('s-q5').value=EVC_MAP[inp.evChargingHabit];}
+  // occupancyPattern 为空 → 跳过（No modification）
+  document.getElementById('s-q1').value=
+    (inp.occupancyPattern&&OCC_MAP[inp.occupancyPattern])
+      ? OCC_MAP[inp.occupancyPattern]
+      : 'No modification (default/skip)';
+  // hvacSystemType 为空 → 无冷暖设备
+  document.getElementById('s-q2').value=
+    (inp.hvacSystemType&&HVAC_MAP[inp.hvacSystemType])
+      ? HVAC_MAP[inp.hvacSystemType]
+      : 'No heating or cooling system';
+  // usageLevel 为空 → 中
+  document.getElementById('s-q3').value=
+    (inp.usageLevel&&USAGE_MAP[inp.usageLevel])
+      ? USAGE_MAP[inp.usageLevel]
+      : 'Medium';
+  // evMileage 为空 → 无电动车
+  document.getElementById('s-q4').value=
+    (inp.evMileage&&EV_MAP[inp.evMileage]!=null)
+      ? EV_MAP[inp.evMileage]
+      : '0';
+  // evChargingHabit 为空 → 主要夜间充电
+  document.getElementById('s-q5').value=
+    (inp.evChargingHabit&&EVC_MAP[inp.evChargingHabit])
+      ? EVC_MAP[inp.evChargingHabit]
+      : 'mostly_overnight';
 }
 
 function reCompare(){
