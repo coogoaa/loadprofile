@@ -1,0 +1,13 @@
+month_num	month_abbr	cool_month	heat_month	season
+1	Jan	0	1	Winter
+2	Feb	0	1	Winter
+3	Mar	0	1	Spring
+4	Apr	0	1	Spring
+5	May	0	0	Spring
+6	Jun	1	0	Summer
+7	Jul	1	0	Summer
+8	Aug	1	0	Summer
+9	Sep	0	0	Autumn
+10	Oct	0	1	Autumn
+11	Nov	0	1	Autumn
+12	Dec	0	1	Winter

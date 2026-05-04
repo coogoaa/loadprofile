@@ -1,0 +1,9 @@
+state,base_annual_kwh,old_v1.5_kwh,frontier_2020_total_kwh,delta_vs_frontier,confidence,notes,primary_source
+ACT,6107,8632,26932,-77.3%,high,"AER benchmark（2024）：2人户6107 kWh。Frontier 2020数据26932 kWh是\"总用电量\"（含供暖制冷），而LoadProfile需要的是\"基础用电\"（不含HVAC附加）。ACT天然气用量高（36870 MJ/年），供暖主要靠气，电力基准6107合理。","AER benchmark via energyse.com.au (2024); Frontier Economics benchmarks for AER (Dec 2020)"
+NSW,5600,7778,15876,-64.7%,high,"NSW EPA官方报告2022-23：平均住宅5.6 MWh/年。Frontier 2020数据15876 kWh（Zone 5悉尼）是总用电量，包含了供暖制冷。NSW有天然气（16945 MJ/年），电力基准5600 kWh合理。","NSW State of Environment Report 2024; AER Reference Price FY23-24; Frontier Economics (Dec 2020)"
+VIC,4600,6778,15933,-71.1%,high,"VIC电力全国最低，但天然气全国最高（50462 MJ/年）。Frontier 2020数据15933 kWh（Zone 6墨尔本）是总用电量。维多利亚大量使用天然气供暖，电力基准4600 kWh完全合理。","AER / Victorian Default Offer benchmark; Frontier Economics (Dec 2020)"
+QLD,5600,7270,10212,-45.2%,high,"QLD气候温暖，天然气用量极少（6262 MJ/年）。Frontier 2020数据10212 kWh（Zone 2布里斯班）是总用电量，包含空调制冷。电力基准5600 kWh合理。","AER benchmark (Energex/SEQ network); Frontier Economics (Dec 2020)"
+SA,5047,7129,5046,+0.0%,high,"SA是唯一与Frontier 2020数据一致的州（5046 vs 5047）！说明SA的Frontier数据可能就是\"基础用电\"，或SA的供暖制冷用电极少。AER直接基准数据5047 kWh。","AER benchmark via energyse.com.au (2024); Frontier Economics (Dec 2020) - Adelaide & Environs"
+TAS,8784,10148,26932,-69.4%,high,"TAS无管道天然气（0 MJ），所有供暖靠电。Frontier 2020数据26932 kWh（Zone 7）是总用电量，包含大量电热供暖。AER数据：Hobart 2人户8784 kWh（基础用电）。","AER benchmark via energyse.com.au (2024); Frontier Economics (Dec 2020)"
+WA,6000,7634,N/A,N/A,medium,"WA不在NEM体系，无AER参考消费量，也无Frontier 2020基准（不在NEM）。WA有天然气但普及率低于VIC/NSW。参考AER全国日均用量及Synergy行业估算，约6000 kWh/年（2-3人户）。","AER 2023 national average daily usage; Synergy WA benchmark estimates"
+NT,6500,10008,N/A,N/A,medium,"NT不在NEM体系，无AER参考消费量，也无Frontier 2020基准。NT无管道天然气，气候极热，空调全年运行。旧值10008严重偏高（+54%），可能混入原住民社区大家庭数据。","Utilities Commission NT; comparethemarket.com.au NT electricity guide (2024)"

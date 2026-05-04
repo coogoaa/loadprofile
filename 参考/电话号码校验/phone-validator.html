@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>电话号码校验 Demo · libphonenumber-js</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --card:#fff; --border:#e4e7eb; --text:#1f2937; --muted:#6b7280;
+    --primary:#2563eb; --ok:#10b981; --err:#ef4444; --warn:#f59e0b;
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+  .wrap{max-width:880px;margin:0 auto;padding:24px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .row{display:flex;gap:8px;align-items:stretch}
+  .cc-select{
+    display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);
+    border-radius:var(--radius);padding:0 12px;cursor:pointer;user-select:none;min-width:140px;position:relative;
+    font-size:15px;
+  }
+  .cc-select:hover{border-color:#cbd5e1}
+  .cc-select .flag{font-size:20px}
+  .cc-select .code{color:var(--muted);font-size:14px}
+  .cc-select .arrow{margin-left:auto;color:var(--muted);font-size:10px}
+  .dropdown{
+    position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--border);
+    border-radius:var(--radius);box-shadow:0 10px 25px rgba(0,0,0,.08);max-height:280px;overflow:auto;
+    z-index:10;display:none;min-width:260px;
+  }
+  .dropdown.open{display:block}
+  .dropdown input{width:100%;border:none;border-bottom:1px solid var(--border);padding:10px 12px;outline:none;font-size:14px;position:sticky;top:0;background:#fff}
+  .dropdown .item{padding:8px 12px;display:flex;gap:8px;align-items:center;cursor:pointer;font-size:14px}
+  .dropdown .item:hover,.dropdown .item.active{background:#f1f5f9}
+  .dropdown .item .code{margin-left:auto;color:var(--muted);font-size:13px}
+  input.tel{
+    flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:16px;outline:none;
+    background:#fff;
+  }
+  input.tel:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+  input.tel.ok{border-color:var(--ok)}
+  input.tel.err{border-color:var(--err)}
+  .status{margin-top:10px;font-size:14px;display:flex;align-items:center;gap:6px}
+  .status .dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1}
+  .status.ok{color:var(--ok)}
+  .status.ok .dot{background:var(--ok)}
+  .status.err{color:var(--err)}
+  .status.err .dot{background:var(--err)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-top:12px;font-size:13px}
+  .grid .k{color:var(--muted)}
+  .grid .v{color:var(--text);font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+  h3{font-size:15px;margin:0 0 10px}
+  .examples{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{
+    background:#f1f5f9;border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer;
+    font-family:ui-monospace,Menlo,Consolas,monospace;
+  }
+  .chip:hover{background:#e2e8f0}
+  .tips{font-size:13px;color:var(--muted);margin-top:8px}
+  .tips code{background:#f1f5f9;padding:1px 6px;border-radius:4px}
+  .tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;background:#eef2ff;color:#4338ca;margin-left:6px}
+  .tag.mobile{background:#ecfdf5;color:#047857}
+  .tag.fixed{background:#fef3c7;color:#92400e}
+  .foot{font-size:12px;color:var(--muted);text-align:center;margin-top:12px}
+  .foot a{color:var(--primary);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>电话号码校验 Demo</h1>
+  <div class="sub">基于 <code>libphonenumber-js</code>（Google libphonenumber 的 JS 版），支持国家码选择、自动识别、格式化与校验。重点覆盖 🇦🇺 澳大利亚 与 🇩🇪 德国。</div>
+
+  <div class="card">
+    <label>请输入电话号码</label>
+    <div class="row">
+      <div class="cc-select" id="ccSelect">
+        <span class="flag" id="ccFlag">🇩🇪</span>
+        <span id="ccName">德国</span>
+        <span class="code" id="ccCode">+49</span>
+        <span class="arrow">▼</span>
+        <div class="dropdown" id="ccDropdown" onclick="event.stopPropagation()">
+          <input type="text" id="ccSearch" placeholder="搜索国家 / 区号 …" />
+          <div id="ccList"></div>
+        </div>
+      </div>
+      <input id="tel" class="tel" type="tel" placeholder="输入号码，支持直接粘贴带 + 的国际格式" autocomplete="off" />
+    </div>
+
+    <div class="status" id="status"><span class="dot"></span><span id="statusText">等待输入…</span></div>
+
+    <div class="grid" id="detail" style="display:none">
+      <div class="k">是否有效</div><div class="v" id="dValid">—</div>
+      <div class="k">是否可能</div><div class="v" id="dPossible">—</div>
+      <div class="k">号码类型</div><div class="v" id="dType">—</div>
+      <div class="k">识别国家</div><div class="v" id="dCountry">—</div>
+      <div class="k">国际格式 (E.164)</div><div class="v" id="dE164">—</div>
+      <div class="k">国际格式</div><div class="v" id="dIntl">—</div>
+      <div class="k">国内格式</div><div class="v" id="dNat">—</div>
+      <div class="k">RFC3966 / tel:</div><div class="v" id="dUri">—</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>常见号码示例（点击可填入）</h3>
+    <div id="examplesBox"></div>
+    <div class="tips">
+      提示：
+      <div>• 澳洲手机以 <code>04</code> 开头（国内 10 位，如 <code>0412 345 678</code>），国际格式为 <code>+61 412 345 678</code>。</div>
+      <div>• 德国手机以 <code>015 / 016 / 017</code> 开头（如 <code>0151 23456789</code>），国际格式去掉前导 <code>0</code>：<code>+49 151 23456789</code>。</div>
+      <div>• 在输入框直接粘贴 <code>+61…</code> 或 <code>+49…</code> 可自动识别国家并切换旗标。</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    libphonenumber-js · 数据源自 Google libphonenumber ·
+    <a href="https://github.com/catamphetamine/libphonenumber-js" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div>
+
+<script type="module">
+import {
+  AsYouType,
+  parsePhoneNumberFromString,
+  getCountryCallingCode,
+  isValidPhoneNumber,
+  isPossiblePhoneNumber,
+  getExampleNumber
+} from 'https://esm.sh/libphonenumber-js@1.11.17/max';
+import examples from 'https://esm.sh/libphonenumber-js@1.11.17/examples.mobile.json' with { type: 'json' };
+
+// ---- 国家列表（优先澳洲 / 德国） ----
+const COUNTRIES = [
+  { code:'DE', name:'德国 Germany',        flag:'🇩🇪' },
+  { code:'AU', name:'澳大利亚 Australia',  flag:'🇦🇺' },
+  { code:'CN', name:'中国 China',          flag:'🇨🇳' },
+  { code:'HK', name:'中国香港 Hong Kong',  flag:'🇭🇰' },
+  { code:'TW', name:'中国台湾 Taiwan',     flag:'🇹🇼' },
+  { code:'US', name:'美国 United States',  flag:'🇺🇸' },
+  { code:'GB', name:'英国 United Kingdom', flag:'🇬🇧' },
+  { code:'FR', name:'法国 France',         flag:'🇫🇷' },
+  { code:'IT', name:'意大利 Italy',        flag:'🇮🇹' },
+  { code:'ES', name:'西班牙 Spain',        flag:'🇪🇸' },
+  { code:'NL', name:'荷兰 Netherlands',    flag:'🇳🇱' },
+  { code:'CH', name:'瑞士 Switzerland',    flag:'🇨🇭' },
+  { code:'AT', name:'奥地利 Austria',      flag:'🇦🇹' },
+  { code:'JP', name:'日本 Japan',          flag:'🇯🇵' },
+  { code:'KR', name:'韩国 Korea',          flag:'🇰🇷' },
+  { code:'SG', name:'新加坡 Singapore',    flag:'🇸🇬' },
+  { code:'NZ', name:'新西兰 New Zealand',  flag:'🇳🇿' },
+  { code:'CA', name:'加拿大 Canada',       flag:'🇨🇦' },
+  { code:'IN', name:'印度 India',          flag:'🇮🇳' },
+];
+
+// ---- 示例号码（展示在页面上；可点击填入） ----
+const SAMPLE_NUMBERS = {
+  AU: [
+    { label:'手机',        value:'0412 345 678', type:'mobile' },
+    { label:'手机(国际)',  value:'+61 412 345 678', type:'mobile' },
+    { label:'悉尼固话',    value:'(02) 9374 4000', type:'fixed' },
+    { label:'墨尔本固话',  value:'+61 3 9658 9658', type:'fixed' },
+    { label:'免费电话',    value:'1800 123 456', type:'toll-free' },
+  ],
+  DE: [
+    { label:'手机',       value:'0151 23456789', type:'mobile' },
+    { label:'手机(国际)', value:'+49 151 23456789', type:'mobile' },
+    { label:'柏林固话',   value:'030 12345678', type:'fixed' },
+    { label:'慕尼黑固话', value:'+49 89 12345678', type:'fixed' },
+    { label:'服务号 0800',value:'0800 1234567', type:'toll-free' },
+  ],
+  CN: [
+    { label:'手机', value:'138 0013 8000', type:'mobile' },
+    { label:'手机(国际)', value:'+86 138 0013 8000', type:'mobile' },
+    { label:'北京固话', value:'010 12345678', type:'fixed' },
+  ],
+  US: [
+    { label:'纽约', value:'+1 212-555-0199', type:'fixed' },
+  ],
+};
+
+// ---- 状态 ----
+let currentCountry = 'DE';
+
+// ---- DOM ----
+const $ = (id)=>document.getElementById(id);
+const telEl = $('tel');
+const ccSelect = $('ccSelect');
+const ccDropdown = $('ccDropdown');
+const ccList = $('ccList');
+const ccSearch = $('ccSearch');
+
+// ---- 渲染国家下拉 ----
+function renderCountryList(filter=''){
+  const f = filter.trim().toLowerCase();
+  ccList.innerHTML = '';
+  COUNTRIES
+    .filter(c => !f || c.name.toLowerCase().includes(f) || c.code.toLowerCase().includes(f) || ('+'+getCountryCallingCode(c.code)).includes(f))
+    .forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'item' + (c.code===currentCountry ? ' active':'');
+      el.innerHTML = `<span class="flag" style="font-size:18px">${c.flag}</span><span>${c.name}</span><span class="code">+${getCountryCallingCode(c.code)}</span>`;
+      el.onclick = ()=>{
+        setCountry(c.code);
+        closeDropdown();
+        telEl.focus();
+      };
+      ccList.appendChild(el);
+    });
+}
+
+function setCountry(code){
+  currentCountry = code;
+  const c = COUNTRIES.find(x=>x.code===code);
+  $('ccFlag').textContent = c.flag;
+  $('ccName').textContent = c.name.split(' ')[0];
+  $('ccCode').textContent = '+' + getCountryCallingCode(code);
+  renderExamples();
+  validate();
+}
+
+function openDropdown(){ ccDropdown.classList.add('open'); ccSearch.value=''; renderCountryList(); setTimeout(()=>ccSearch.focus(),0); }
+function closeDropdown(){ ccDropdown.classList.remove('open'); }
+ccSelect.addEventListener('click', (e)=>{
+  if (ccDropdown.classList.contains('open')) closeDropdown(); else openDropdown();
+});
+document.addEventListener('click',(e)=>{ if(!ccSelect.contains(e.target)) closeDropdown(); });
+ccSearch.addEventListener('input', ()=> renderCountryList(ccSearch.value));
+
+// ---- 示例渲染 ----
+function renderExamples(){
+  const box = $('examplesBox');
+  box.innerHTML = '';
+  const list = SAMPLE_NUMBERS[currentCountry];
+  if (!list){
+    // 使用库内置 mobile 示例
+    try{
+      const n = getExampleNumber(currentCountry, examples);
+      if (n){
+        const wrap = document.createElement('div');
+        wrap.className = 'examples';
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = n.formatNational();
+        chip.onclick = ()=>{ telEl.value = n.formatNational(); validate(); telEl.focus(); };
+        wrap.appendChild(chip);
+        box.appendChild(wrap);
+      } else {
+        box.textContent = '暂无示例';
+      }
+    }catch{ box.textContent='暂无示例'; }
+    return;
+  }
+  const group = document.createElement('div');
+  group.className = 'examples';
+  list.forEach(s=>{
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    const tagCls = s.type==='mobile'?'mobile':(s.type==='fixed'?'fixed':'');
+    chip.innerHTML = `${s.value}<span class="tag ${tagCls}">${s.label}</span>`;
+    chip.onclick = ()=>{ telEl.value = s.value; validate(); telEl.focus(); };
+    group.appendChild(chip);
+  });
+  box.appendChild(group);
+}
+
+// ---- 类型中文映射 ----
+const TYPE_CN = {
+  'MOBILE':'手机',
+  'FIXED_LINE':'固定电话',
+  'FIXED_LINE_OR_MOBILE':'固定电话或手机',
+  'PREMIUM_RATE':'付费服务',
+  'TOLL_FREE':'免费电话',
+  'SHARED_COST':'共享付费',
+  'VOIP':'VoIP 网络电话',
+  'PERSONAL_NUMBER':'个人号码',
+  'PAGER':'寻呼机',
+  'UAN':'统一接入号',
+  'VOICEMAIL':'语音信箱',
+};
+
+// ---- 核心：校验 + 格式化 ----
+function validate(){
+  const raw = telEl.value;
+  const statusEl = $('status');
+  const statusText = $('statusText');
+  const detail = $('detail');
+
+  telEl.classList.remove('ok','err');
+  statusEl.classList.remove('ok','err');
+
+  if (!raw.trim()){
+    statusText.textContent = '等待输入…';
+    detail.style.display = 'none';
+    return;
+  }
+
+  // 自动识别：若以 + 开头，尝试不带默认国家解析，若识别到其他国家则自动切换
+  let autoSwitched = false;
+  if (raw.trim().startsWith('+')){
+    const guess = parsePhoneNumberFromString(raw);
+    if (guess && guess.country && guess.country !== currentCountry && COUNTRIES.some(c=>c.code===guess.country)){
+      setCountry(guess.country);
+      autoSwitched = true;
+    }
+  }
+
+  // AsYouType 实时格式化（不覆盖用户正在输入的结尾）
+  const ayt = new AsYouType(currentCountry);
+  const formatted = ayt.input(raw);
+  // 只在值明显不同且光标在末尾时回填，避免打断输入
+  if (document.activeElement === telEl) {
+    const atEnd = telEl.selectionStart === raw.length;
+    if (atEnd && formatted && formatted !== raw) {
+      telEl.value = formatted;
+    }
+  } else if (formatted) {
+    telEl.value = formatted;
+  }
+
+  const phone = parsePhoneNumberFromString(telEl.value, currentCountry);
+  if (!phone){
+    telEl.classList.add('err');
+    statusEl.classList.add('err');
+    statusText.textContent = '❌ 无法解析号码，请检查格式';
+    detail.style.display='none';
+    return;
+  }
+
+  const valid = phone.isValid();
+  const possible = phone.isPossible();
+  const typeRaw = phone.getType();
+  const typeCn = typeRaw ? (TYPE_CN[typeRaw] || typeRaw) : '未知';
+
+  if (valid){
+    telEl.classList.add('ok');
+    statusEl.classList.add('ok');
+    statusText.textContent = `✅ 有效的${typeCn}号码${autoSwitched?'（已自动识别国家）':''}`;
+  } else if (possible){
+    telEl.classList.add('err');
+    statusEl.classList.add('err');
+    statusText.textContent = '⚠️ 长度可能正确，但不是有效号码，请检查号段';
+  } else {
+    telEl.classList.add('err');
+    statusEl.classList.add('err');
+    statusText.textContent = '❌ 无效号码（长度或号段错误）';
+  }
+
+  detail.style.display = 'grid';
+  $('dValid').textContent = valid ? 'true' : 'false';
+  $('dPossible').textContent = possible ? 'true' : 'false';
+  $('dType').textContent = typeCn + (typeRaw? `  (${typeRaw})`:'');
+  $('dCountry').textContent = `${phone.country || '-'}  +${phone.countryCallingCode}`;
+  $('dE164').textContent = phone.number;
+  $('dIntl').textContent = phone.formatInternational();
+  $('dNat').textContent = phone.formatNational();
+  $('dUri').textContent = phone.getURI();
+}
+
+telEl.addEventListener('input', validate);
+telEl.addEventListener('blur', validate);
+
+// 初始化
+setCountry('DE');
+renderCountryList();
+</script>
+</body>
+</html>

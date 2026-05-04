@@ -1,0 +1,9 @@
+state,base_annual_kwh,old_v1.5_kwh,gas_annual_mj_2person,gas_kwh_equiv,total_energy_kwh_equiv,confidence,notes,primary_source
+ACT,6107,8632,36870,10243,16350,high,"AER benchmark（EvoEnergy网络，2024）：2人户季节合计 1200+1468+2042+1397=6107 kWh。ACT天然气用量极高（36870 MJ/年），供暖主要靠气，电力基准6107合理。旧值8632可能混入了气热折算。","AER benchmark via energyse.com.au (2024); Frontier Economics gas benchmark for AER (Dec 2020)"
+NSW,5600,7778,16945,4707,10307,high,"NSW EPA官方报告2022-23：平均住宅用电约5.6 MWh/年。NSW有天然气但用量中等，电力基准5600 kWh合理。","NSW State of Environment Report 2024 (EPA NSW); AER Reference Price FY23-24"
+VIC,4600,6778,50462,14018,18618,high,"VIC电力全国最低，但天然气全国最高（50462 MJ/年）。维多利亚大量使用天然气供暖，电力4600 kWh完全合理。旧值6778偏高，可能错误地将气热折算进了电力。","AER / Victorian Default Offer benchmark; Frontier Economics gas benchmark for AER (Dec 2020)"
+QLD,5600,7270,6262,1740,7340,high,"QLD气候温暖，天然气用量极少（6262 MJ/年），几乎无供暖需求。电力主要用于空调制冷，5600 kWh合理。","AER benchmark (Energex/SEQ network); Frontier Economics gas benchmark for AER (Dec 2020)"
+SA,5047,7129,14669,4075,9122,high,"AER直接基准数据：SA 2人户5047 kWh/年（energyse.com.au引用）。SA有天然气供暖，电力基准5047合理。","AER benchmark data cited in energyse.com.au April 2024 analysis; Frontier Economics gas benchmark for AER (Dec 2020)"
+TAS,8784,10148,0,0,8784,high,"TAS无管道天然气（天然气基准为0），所有供暖完全依赖电力。AER数据：Hobart 2人户8784 kWh/年。旧值10148偏高约15%，可能含多人家庭数据。","AER benchmark via energyse.com.au (2024); Frontier Economics gas benchmark confirms TAS has no piped gas"
+WA,6000,7634,N/A,N/A,6000,medium,"WA不在NEM体系，无AER参考消费量，也无Frontier Economics天然气基准。WA有天然气但普及率低于VIC/NSW。参考AER全国日均用量及Synergy行业估算，约6000 kWh/年（2-3人户）。","AER 2023 national average daily usage; Synergy WA benchmark estimates"
+NT,6500,10008,N/A,N/A,6500,medium,"NT不在NEM体系，无AER参考消费量，也无天然气基准（NT无管道天然气）。气候极热，空调全年运行，但家庭规模较小。旧值10008严重偏高（+54%），可能混入原住民社区大家庭数据。","Utilities Commission NT; comparethemarket.com.au NT electricity guide (2024)"

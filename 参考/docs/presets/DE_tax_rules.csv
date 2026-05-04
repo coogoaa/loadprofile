@@ -1,0 +1,6 @@
+rule,condition,vat_rate,note
+PV_system,PV_capacity_kw <= 30,0%,德国PV 30kW以下免税(0% VAT)
+PV_system,PV_capacity_kw > 30,19%,超过30kW按标准税率
+Battery_only,no_PV_in_order,19%,仅购买电池需缴19% VAT
+Battery_with_PV,PV_capacity_kw <= 30,0%,随PV一起购买的电池享受免税
+Inverter_with_PV,PV_capacity_kw <= 30,0%,随PV一起购买的逆变器享受免税

@@ -1,0 +1,7 @@
+
+DE 暖通空调热负荷		
+system	base_thermal_load_kwh	note
+No heating or cooling system	0	无额外电量
+Air conditioning	0	仅重分配冷季月份和峰时段;不增加年电量
+Electric heating	3000	德国冬季寒冷;电采暖基础热负荷较高
+Heat pump (heating & cooling)	2000	热泵效率高;但德国冬季长供暖需求大

@@ -1,0 +1,5 @@
+system,base_thermal_load_kwh,note
+No heating or cooling system,0,无额外电量
+Air conditioning,0,仅重分配冷季月份和峰时段;不增加年电量(假设已包含在基准用电中)
+Electric heating,2500,澳洲冬季较温和(除TAS/ACT外);低于德国3000kWh
+Heat pump (heating & cooling),1800,热泵效率高COP约3-4;澳洲气候温和热负荷低于德国2000kWh

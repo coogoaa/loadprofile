@@ -1,0 +1,10 @@
+
+GLOBAL_ev_params		电动汽车参数
+parameter	value	note
+ev_efficiency_kwh_per_km	0.18	两国通用;中型EV平均能效
+mileage_option_0	0	No electric vehicle
+mileage_option_1	5000	5000 km/year
+mileage_option_2	10000	10000 km/year
+mileage_option_3	15000	15000 km/year
+mileage_option_4	20000	20000 km/year
+mileage_option_5	25000	25000+ km/year

@@ -1,0 +1,9 @@
+state,base_annual_kwh,old_v1.5_kwh,delta_pct,notes,primary_source
+ACT,6107,8632,-29.2%,"AER benchmark data (2024): 2-person household seasonal sum = 1200+1468+2042+1397 = 6107 kWh。旧值 8632 明显偏高，可能混入了供暖用气折算或多人家庭数据。","AER benchmark via energyse.com.au (2024); goswitch.com.au 引用 AER 基准 4613 kWh/年（单人）"
+NSW,5600,7778,-28.0%,"NSW EPA 2022-23 官方数据：平均住宅用电约 5.6 MWh/年。AER 参考消费量（FY23-24）对应账单约 $1827/年。energyse.com.au 引用 AER 基准 5047 kWh（SA 2人户），NSW 略高。","NSW State of Environment Report 2024 (EPA NSW): 5.6 MWh/year; AER Reference Price FY23-24"
+VIC,4600,6778,-32.1%,"维多利亚气候温和，用电量全国最低。energyse.com.au 引用 AER 数据：墨尔本 2 人户年均约 4600 kWh。VIC Default Offer 基准消费量约 4000-4600 kWh。","AER / Victorian Default Offer benchmark; energyse.com.au 2024 analysis"
+QLD,5600,7270,-22.9%,"昆士兰气候温暖，主要用电为空调制冷。AER 基准消费量（SEQ 网络）约 5600 kWh/年（2-3 人户）。旧值 7270 偏高约 30%。","AER benchmark (Energex/SEQ network); AEMC Residential Electricity Price Trends 2021"
+SA,5047,7129,-29.2%,"energyse.com.au 直接引用 AER 基准：SA 2 人户 5047 kWh/年。SA 气候温和，用电量低于 NSW/QLD。","AER benchmark data cited in energyse.com.au April 2024 analysis"
+TAS,8784,10148,-13.4%,"塔斯马尼亚气候寒冷，无天然气管网，大量使用电热。energyse.com.au 引用 AER 数据：Hobart 2 人户 8724-8784 kWh/年，为全国最高。旧值 10148 偏高约 15%，可能含多人家庭。","AER benchmark via energyse.com.au (2024): Hobart 2-person = 8,784 kWh/year"
+WA,6000,7634,-21.4%,"西澳不在 NEM 体系，由 Synergy 供电，政府管制价格。气候炎热干燥，空调用电多。参考 AER 全国平均日用量 18.71 kWh（3人户）× 365 ≈ 6829 kWh，WA 气候较热取中间值约 6000 kWh。","AER 2023 national average daily usage data; Synergy WA benchmark estimates"
+NT,6500,10008,-35.1%,"北领地气候极热，空调全年运行，但家庭规模较小（平均 2.4 人）。旧值 10008 严重偏高，可能混入了原住民社区大家庭数据。Jacana Energy 服务区典型住宅用电约 6000-7000 kWh/年。","Utilities Commission NT; comparethemarket.com.au NT electricity guide (2024)"
