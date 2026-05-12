@@ -220,7 +220,7 @@ def render_report(case, mode, sc, lp, gen, load, sim, gen_info, gen_existing=Non
     add('')
     add('| 项 | 值 |')
     add('|---|---|')
-    if mode == 'R' and gen_info['existing_kwp'] > 0:
+    if mode == 'R':
         add(f'| 既有 PV | {gen_info["existing_kwp"]:.2f} kWp |')
         add(f'| 既有 PV 年发电 | {gen_info["existing_gen_total"]:,.1f} kWh（简化计算：容量 × 兜底年发电系数） |')
         add(f'| 新增 PV 面板 | {gen_info["added_panels"]} 块 |')
@@ -228,8 +228,13 @@ def render_report(case, mode, sc, lp, gen, load, sim, gen_info, gen_existing=Non
         add(f'| 总 PV 容量 | {actual_pv:.2f} kWp |')
         add(f'| 总年发电 | {gen_info["total_gen_total"]:,.1f} kWh |')
     else:
-        add(f'| 选中面板 | {actual_panels} 块 ({actual_pv:.2f} kWp) |')
-        add(f'| 年发电（选板合计） | {gen_info["total_gen_total"]:,.1f} kWh |')
+        # N 模式：既有 PV 为 0，全部为新增 PV
+        add(f'| 既有 PV | 0.00 kWp |')
+        add(f'| 既有 PV 年发电 | 0.0 kWh（无既有 PV） |')
+        add(f'| 新增 PV 面板 | {actual_panels} 块 |')
+        add(f'| 新增 PV 年发电 | {gen_info["added_gen_total"]:,.1f} kWh（选板计算） |')
+        add(f'| 总 PV 容量 | {actual_pv:.2f} kWp |')
+        add(f'| 总年发电 | {gen_info["total_gen_total"]:,.1f} kWh |')
     add(f'| 电池容量 | {bat_kwh} kWh（usable={sim["usable_capacity"]:.2f} kWh, DoD={P.BATT_DOD}, RTE={P.BATT_RTE}） |')
     add(f'| 年用电 final | {lp["totals"]["final"]:,.1f} kWh |')
     add('')
@@ -301,14 +306,56 @@ def render_report(case, mode, sc, lp, gen, load, sim, gen_info, gen_existing=Non
             add(f'| {P.MONTH_ZH[m]} | {row} | **{sum(gen[m]):.2f}** |')
         add('')
     else:
-        # 2. 发电矩阵（N 模式）
-        add('## 2. 发电矩阵 gen[m][h]（kWh/小时，典型日）')
+        # N 模式：无既有 PV，全部为新增 PV
+        # 2.1 既有 PV 发电矩阵（无）
+        add('## 2.1 既有 PV 发电矩阵（无既有 PV）')
+        add('')
+        add('### 计算过程')
+        add('')
+        add('N 模式无既有 PV，既有 PV 发电 = 0 kWh')
+        add('')
+        add('### 发电矩阵（kWh/小时，典型日）')
+        add('')
+        add('全零矩阵（无既有 PV）')
+        add('')
+
+        # 2.2 新增 PV 发电矩阵（选板计算）
+        add('## 2.2 新增 PV 发电矩阵（选板计算）')
+        add('')
+        add('### 计算过程')
+        add('')
+        add('新增 PV 使用选板计算公式：')
+        add('```')
+        add('gen[m][h] = Σ_selected_panel.monthlyHourlyPowerList[m][h]')
+        add(f'选中面板数 = {actual_panels} 块')
+        add(f'年发电量 = {gen_info["added_gen_total"]:,.1f} kWh（从面板的 monthlyHourlyPowerList 累加）')
+        add('```')
+        add('选板过程：按年发电量降序排序，取前 N 块')
+        add('')
+        add('### 发电矩阵（kWh/小时，典型日）')
         add('')
         add('| 月\\h | ' + ' | '.join(f'{h:02d}' for h in range(24)) + ' | 日合 |')
         add('|---' * 26 + '|')
         for m in range(12):
             row = ' | '.join(f'{gen[m][h]:.2f}' for h in range(24))
             add(f'| {P.MONTH_ZH[m]} | {row} | **{sum(gen[m]):.2f}** |')
+        add('')
+
+        # 2.3 总发电矩阵（新增 PV）
+        add('## 2.3 总发电矩阵（新增 PV）')
+        add('')
+        add('### 合并过程')
+        add('')
+        add('```')
+        add('gen_total[m][h] = gen_existing[m][h] + gen_added[m][h]')
+        add(f'既有 PV 年发电 = 0.0 kWh（无既有 PV）')
+        add(f'新增 PV 年发电 = {gen_info["added_gen_total"]:,.1f} kWh')
+        add(f'总年发电 = {gen_info["added_gen_total"]:,.1f} kWh')
+        add('```')
+        add('')
+        add('### 发电矩阵（kWh/小时，典型日）')
+        add('')
+        add('（同 2.2 新增 PV 发电矩阵）')
         add('')
 
     # 3. 用电矩阵
