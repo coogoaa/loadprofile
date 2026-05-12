@@ -11,26 +11,37 @@ from pathlib import Path
 
 
 def extract_online_results(input_file):
-    """从测试输入.md 中提取线上返回的 JSON 数据"""
+    """从测试输入.md 中提取线上返回的 JSON 数据，或直接读取 JSON 文件"""
     with open(input_file, 'r', encoding='utf-8') as f:
         content = f.read()
     
-    # 提取 JSON 部分（在 ```json 和 ``` 之间，或者单独的 ``` 块）
-    json_match = re.search(r'```json\s*([\s\S]*?)\s*```', content)
-    if not json_match:
-        json_match = re.search(r'```\s*({[\s\S]*?})\s*```', content)
-    
-    if not json_match:
-        raise ValueError("无法从输入文件中提取 JSON 数据")
-    
-    json_str = json_match.group(1).strip()
-    data = json.loads(json_str)
-    
-    # 支持两种格式：直接返回 data 或嵌套在 'data' 字段中
-    if 'data' in data:
-        return data['data']
+    # 判断是否是纯 JSON 文件（以 { 开头）
+    content = content.strip()
+    if content.startswith('{'):
+        # 直接是 JSON 文件
+        data = json.loads(content)
+        # 支持两种格式：直接返回 data 或嵌套在 'data' 字段中
+        if 'data' in data:
+            return data['data'], data  # 返回 (线上数据, 完整原始数据)
+        else:
+            return data, data
     else:
-        return data
+        # 从 markdown 中提取 JSON 部分
+        json_match = re.search(r'```json\s*([\s\S]*?)\s*```', content)
+        if not json_match:
+            json_match = re.search(r'```\s*({[\s\S]*?})\s*```', content)
+        
+        if not json_match:
+            raise ValueError("无法从输入文件中提取 JSON 数据")
+        
+        json_str = json_match.group(1).strip()
+        data = json.loads(json_str)
+        
+        # 支持两种格式：直接返回 data 或嵌套在 'data' 字段中
+        if 'data' in data:
+            return data['data'], data  # 返回 (线上数据, 完整原始数据)
+        else:
+            return data, data
 
 
 def load_our_results(output_dir, case_id, mode, tier):
@@ -57,6 +68,42 @@ def load_our_results(output_dir, case_id, mode, tier):
     }
 
 
+def extract_tsv_from_md(tsv_file):
+    """从 markdown 文件中提取 TSV 数据"""
+    with open(tsv_file, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # 提取 TSV 部分（在 ```tsv 和 ``` 之间）
+    tsv_match = re.search(r'```tsv\s*([\s\S]*?)\s*```', content, re.IGNORECASE)
+    if not tsv_match:
+        # 如果没有代码块，尝试直接解析
+        tsv_text = content
+    else:
+        tsv_text = tsv_match.group(1)
+    
+    # 解析 TSV
+    rows = []
+    header = None
+    for raw_line in tsv_text.splitlines():
+        line = raw_line.rstrip('\r')
+        if not line.strip():
+            continue
+        cells = line.split('\t')
+        cells = [c.strip() for c in cells]
+        if header is None:
+            header = cells
+            continue
+        while len(cells) < len(header):
+            cells.append('')
+        row = dict(zip(header, cells))
+        rows.append(row)
+    
+    if not rows:
+        raise ValueError('TSV 文件没有数据行')
+    
+    return rows[0]  # 返回第一行数据
+
+
 def get_design_by_tier(online_data, tier):
     """根据 tier 获取对应的设计方案"""
     tier_map = {
@@ -78,7 +125,7 @@ def get_design_by_tier(online_data, tier):
         return online_data
 
 
-def compare_results(online_data, our_results, case_id, mode, tier, output_file=None):
+def compare_results(online_data, our_results, case_id, mode, tier, original_online_response=None, output_file=None):
     """对比线上结果和我们的计算结果"""
     
     # 获取对应的设计
@@ -91,6 +138,15 @@ def compare_results(online_data, our_results, case_id, mode, tier, output_file=N
     lines.append("=" * 80)
     lines.append(f"比对报告: Case {case_id} | Mode: {mode} | Tier: {tier}")
     lines.append("=" * 80)
+    
+    # 添加原始线上返回结果
+    if original_online_response:
+        lines.append("\n## 原始线上返回结果")
+        lines.append("-" * 80)
+        lines.append("```json")
+        lines.append(json.dumps(original_online_response, ensure_ascii=False, indent=2))
+        lines.append("```")
+        lines.append("")
     
     # 检查线上数据格式是否包含设计方案信息
     has_design_data = 'designs' in online_data or ('systemSize' in design if isinstance(design, dict) else False)
@@ -256,32 +312,37 @@ def compare_results(online_data, our_results, case_id, mode, tier, output_file=N
 
 
 def main():
-    if len(sys.argv) < 5:
-        print("用法: python3 compare_with_online.py <输入文件> <输出目录> <case_id> <mode> <tier> [输出文件]")
-        print("示例: python3 compare_with_online.py '../输入/测试输入.md' '../输出' 11199 R B")
-        print("示例（带输出文件）: python3 compare_with_online.py '../输入/测试输入.md' '../输出' 11199 R B '../输出/11199/R/B/05_comparison.md'")
+    if len(sys.argv) < 6:
+        print("用法: python3 compare_with_online.py <TSV输入文件> <JSON线上返回文件> <输出目录> <mode> <tier> [输出文件]")
+        print("示例: python3 compare_with_online.py '../输入/待测试的项目 id 和输入.md' '../输入/待测试的线上返回.md' '../输出' R B")
+        print("示例（带输出文件）: python3 compare_with_online.py '../输入/待测试的项目 id 和输入.md' '../输入/待测试的线上返回.md' '../输出' R B '../输出/11289/R/B/05_comparison.md'")
         sys.exit(1)
 
-    input_file = sys.argv[1]
-    output_dir = sys.argv[2]
-    case_id = sys.argv[3]
+    tsv_file = sys.argv[1]
+    json_file = sys.argv[2]
+    output_dir = sys.argv[3]
     mode = sys.argv[4]
     tier = sys.argv[5]
     output_file = sys.argv[6] if len(sys.argv) >= 7 else None
     
     try:
-        # 提取线上结果
-        online_data = extract_online_results(input_file)
+        # 从 TSV 文件读取 case 参数
+        case_data = extract_tsv_from_md(tsv_file)
+        case_id = case_data['case_id']
+        print(f"✓ 已加载 TSV 输入: case_id={case_id}, mode={mode}, tier={tier}")
+
+        # 从 JSON 文件读取线上返回
+        online_data, original_online_response = extract_online_results(json_file)
         # 支持两种格式：有 'id' 字段或没有
         online_id = online_data.get('id', online_data.get('projectId', 'unknown'))
-        print(f"✓ 已加载线上结果: {online_id}")
+        print(f"✓ 已加载线上返回: {online_id}")
 
         # 加载我们的结果
         our_results = load_our_results(output_dir, case_id, mode, tier)
         print(f"✓ 已加载我们的计算结果: {case_id}/{mode}/{tier}")
 
         # 进行对比
-        compare_results(online_data, our_results, case_id, mode, tier, output_file)
+        compare_results(online_data, our_results, case_id, mode, tier, original_online_response, output_file)
 
     except Exception as e:
         print(f"❌ 错误: {e}")
