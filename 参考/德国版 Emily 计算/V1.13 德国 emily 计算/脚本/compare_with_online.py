@@ -26,7 +26,11 @@ def extract_online_results(input_file):
     json_str = json_match.group(1).strip()
     data = json.loads(json_str)
     
-    return data['data']
+    # 支持两种格式：直接返回 data 或嵌套在 'data' 字段中
+    if 'data' in data:
+        return data['data']
+    else:
+        return data
 
 
 def load_our_results(output_dir, case_id, mode, tier):
@@ -63,11 +67,15 @@ def get_design_by_tier(online_data, tier):
     
     design_name = tier_map.get(tier, 'mostPopular')
     
-    for design in online_data['designs']:
-        if design['designName'] == design_name:
-            return design
-    
-    return None
+    # 支持两种格式：有 'designs' 字段或直接是 panelLocationInfos
+    if 'designs' in online_data:
+        for design in online_data['designs']:
+            if design['designName'] == design_name:
+                return design
+        return None
+    else:
+        # 如果没有 'designs' 字段，返回整个数据作为设计（适配新的数据格式）
+        return online_data
 
 
 def compare_results(online_data, our_results, case_id, mode, tier, output_file=None):
@@ -84,64 +92,110 @@ def compare_results(online_data, our_results, case_id, mode, tier, output_file=N
     lines.append(f"比对报告: Case {case_id} | Mode: {mode} | Tier: {tier}")
     lines.append("=" * 80)
     
-    # 系统组成对比
-    lines.append("\n## 系统组成对比")
-    lines.append("-" * 80)
-    lines.append(f"{'指标':<20} {'线上结果':<20} {'我们的结果':<20} {'差异':<15}")
-    lines.append("-" * 80)
-    
-    # PV 容量
-    online_pv = design['systemSize']
-    our_pv = our_results['system']['actual_pv']
-    pv_diff = our_pv - online_pv
-    lines.append(f"{'PV容量 (kW)':<20} {online_pv:<20.2f} {our_pv:<20.2f} {pv_diff:+.2f}")
-    
-    # 面板数量
-    online_panels = json.loads(design['layout']).get('installPanelCount', 0)
-    our_panels = our_results['system']['actual_panels']
-    panels_diff = our_panels - online_panels
-    lines.append(f"{'面板数量':<20} {online_panels:<20} {our_panels:<20} {panels_diff:+d}")
-    
-    # 逆变器
-    online_inv = design.get('systemSize', 0) * 0.9  # 估算
-    our_inv = our_results['system']['inverter']['inv_kw']
-    inv_diff = our_inv - online_inv
-    lines.append(f"{'逆变器 (kW)':<20} {online_inv:<20.2f} {our_inv:<20.2f} {inv_diff:+.2f}")
-    
-    # 电池
-    online_bat = design.get('batteryCapacity', 0)
-    our_bat = our_results['system']['rh']['bat_kWh']
-    bat_diff = our_bat - online_bat
-    lines.append(f"{'电池 (kWh)':<20} {online_bat:<20} {our_bat:<20} {bat_diff:+.2f}")
-    
-    # 投资额
-    online_cost = design.get('upfrontInvestment', 0)
-    our_cost = our_results['roi']['total_cost']
-    cost_diff = our_cost - online_cost
-    lines.append(f"{'投资额 (€)':<20} {online_cost:<20.2f} {our_cost:<20.2f} {cost_diff:+.2f}")
-    
-    # ROI 指标对比
-    lines.append("\n## ROI 指标对比")
-    lines.append("-" * 80)
-    lines.append(f"{'指标':<20} {'线上结果':<20} {'我们的结果':<20} {'差异':<15}")
-    lines.append("-" * 80)
-    
-    # IRR
-    online_irr = design.get('irr', 0) * 100
-    our_irr = our_results['roi']['IRR'] * 100
-    irr_diff = our_irr - online_irr
-    lines.append(f"{'IRR (%)':<20} {online_irr:<20.2f} {our_irr:<20.2f} {irr_diff:+.2f}")
-    
-    # Payback
-    online_payback = design.get('paybackPeriod', 0)
-    our_payback = our_results['roi']['payback_years']
-    payback_diff = our_payback - online_payback
-    lines.append(f"{'回本期 (年)':<20} {online_payback:<20.2f} {our_payback:<20.2f} {payback_diff:+.2f}")
-    
-    # NPV
-    online_npv = 0  # 线上没有 NPV
-    our_npv = our_results['roi']['NPV']
-    lines.append(f"{'NPV (€)':<20} {online_npv:<20.2f} {our_npv:<20.2f} {'N/A':<15}")
+    # 检查线上数据格式是否包含设计方案信息
+    has_design_data = 'designs' in online_data or ('systemSize' in design if isinstance(design, dict) else False)
+
+    # 根据 mode 获取系统组成字段
+    sys_data = our_results['system']
+    if mode == 'N':
+        # N 场景：字段在 n 对象内
+        actual_pv = sys_data.get('n', {}).get('actual_pv', 0)
+        actual_panels = sys_data.get('n', {}).get('actual_panels', 0)
+        inv_kw = sys_data.get('n', {}).get('inv', {}).get('inv_kw', 0)
+        bat_kwh = sys_data.get('n', {}).get('bat_kWh', 0)
+    elif mode == 'R':
+        # R 场景：字段在根级别或 rh 对象内
+        actual_pv = sys_data.get('actual_pv', 0)
+        actual_panels = sys_data.get('actual_panels', 0)
+        inv_kw = sys_data.get('inverter', {}).get('inv_kw', 0)
+        bat_kwh = sys_data.get('rh', {}).get('bat_kWh', 0)
+    else:
+        # 默认：尝试从根级别获取
+        actual_pv = sys_data.get('actual_pv', 0)
+        actual_panels = sys_data.get('actual_panels', 0)
+        inv_kw = sys_data.get('inverter', {}).get('inv_kw', 0)
+        bat_kwh = sys_data.get('rh', {}).get('bat_kWh', 0)
+
+    if not has_design_data:
+        # 如果线上数据只有 panelLocationInfos，无法进行系统组成和 ROI 对比
+        lines.append("\n## 线上数据格式说明")
+        lines.append("-" * 80)
+        lines.append("⚠️ 线上返回的数据格式仅包含 panelLocationInfos（面板位置信息）")
+        lines.append("   缺少设计方案信息（systemSize、batteryCapacity、upfrontInvestment 等）")
+        lines.append("   无法进行系统组成和 ROI 指标对比")
+        lines.append("")
+        lines.append("## 可对比的指标")
+        lines.append("-" * 80)
+        lines.append(f"{'指标':<20} {'我们的结果':<20}")
+        lines.append("-" * 80)
+        lines.append(f"{'PV容量 (kW)':<20} {actual_pv:<20.2f}")
+        lines.append(f"{'面板数量':<20} {actual_panels:<20}")
+        lines.append(f"{'逆变器 (kW)':<20} {inv_kw:<20.2f}")
+        lines.append(f"{'电池 (kWh)':<20} {bat_kwh:<20}")
+        lines.append(f"{'投资额 (€)':<20} {our_results['roi']['total_cost']:<20.2f}")
+        lines.append(f"{'IRR (%)':<20} {our_results['roi']['IRR']*100:<20.2f}")
+        lines.append(f"{'Payback (年)':<20} {our_results['roi']['payback_years']:<20.2f}")
+        lines.append(f"{'NPV (€)':<20} {our_results['roi']['NPV']:<20.2f}")
+    else:
+        # 系统组成对比
+        lines.append("\n## 系统组成对比")
+        lines.append("-" * 80)
+        lines.append(f"{'指标':<20} {'线上结果':<20} {'我们的结果':<20} {'差异':<15}")
+        lines.append("-" * 80)
+
+        # PV 容量
+        online_pv = design['systemSize']
+        our_pv = actual_pv
+        pv_diff = our_pv - online_pv
+        lines.append(f"{'PV容量 (kW)':<20} {online_pv:<20.2f} {our_pv:<20.2f} {pv_diff:+.2f}")
+
+        # 面板数量
+        online_panels = json.loads(design['layout']).get('installPanelCount', 0)
+        our_panels = actual_panels
+        panels_diff = our_panels - online_panels
+        lines.append(f"{'面板数量':<20} {online_panels:<20} {our_panels:<20} {panels_diff:+d}")
+
+        # 逆变器
+        online_inv = design.get('systemSize', 0) * 0.9  # 估算
+        our_inv = inv_kw
+        inv_diff = our_inv - online_inv
+        lines.append(f"{'逆变器 (kW)':<20} {online_inv:<20.2f} {our_inv:<20.2f} {inv_diff:+.2f}")
+
+        # 电池
+        online_bat = design.get('batteryCapacity', 0)
+        our_bat = bat_kwh
+        bat_diff = our_bat - online_bat
+        lines.append(f"{'电池 (kWh)':<20} {online_bat:<20} {our_bat:<20} {bat_diff:+.2f}")
+
+        # 投资额
+        online_cost = design.get('upfrontInvestment', 0)
+        our_cost = our_results['roi']['total_cost']
+        cost_diff = our_cost - online_cost
+        lines.append(f"{'投资额 (€)':<20} {online_cost:<20.2f} {our_cost:<20.2f} {cost_diff:+.2f}")
+
+        # ROI 指标对比
+        lines.append("\n## ROI 指标对比")
+        lines.append("-" * 80)
+        lines.append(f"{'指标':<20} {'线上结果':<20} {'我们的结果':<20} {'差异':<15}")
+        lines.append("-" * 80)
+
+        # IRR
+        online_irr = design.get('irr', 0) * 100
+        our_irr = our_results['roi']['IRR'] * 100
+        irr_diff = our_irr - online_irr
+        lines.append(f"{'IRR (%)':<20} {online_irr:<20.2f} {our_irr:<20.2f} {irr_diff:+.2f}")
+
+        # Payback
+        online_payback = design.get('payback', 0)
+        our_payback = our_results['roi']['payback_years']
+        payback_diff = our_payback - online_payback
+        lines.append(f"{'Payback (年)':<20} {online_payback:<20.2f} {our_payback:<20.2f} {payback_diff:+.2f}")
+
+        # NPV
+        online_npv = design.get('npv', 0)
+        our_npv = our_results['roi']['NPV']
+        npv_diff = our_npv - online_npv
+        lines.append(f"{'NPV (€)':<20} {online_npv:<20.2f} {our_npv:<20.2f} {npv_diff:+.2f}")
     
     # 能量流对比
     lines.append("\n## 能量流对比")
@@ -207,26 +261,28 @@ def main():
         print("示例: python3 compare_with_online.py '../输入/测试输入.md' '../输出' 11199 R B")
         print("示例（带输出文件）: python3 compare_with_online.py '../输入/测试输入.md' '../输出' 11199 R B '../输出/11199/R/B/05_comparison.md'")
         sys.exit(1)
-    
+
     input_file = sys.argv[1]
     output_dir = sys.argv[2]
     case_id = sys.argv[3]
     mode = sys.argv[4]
     tier = sys.argv[5]
-    output_file = sys.argv[6] if len(sys.argv) >= 6 else None
+    output_file = sys.argv[6] if len(sys.argv) >= 7 else None
     
     try:
         # 提取线上结果
         online_data = extract_online_results(input_file)
-        print(f"✓ 已加载线上结果: {online_data['id']}")
-        
+        # 支持两种格式：有 'id' 字段或没有
+        online_id = online_data.get('id', online_data.get('projectId', 'unknown'))
+        print(f"✓ 已加载线上结果: {online_id}")
+
         # 加载我们的结果
         our_results = load_our_results(output_dir, case_id, mode, tier)
         print(f"✓ 已加载我们的计算结果: {case_id}/{mode}/{tier}")
-        
+
         # 进行对比
         compare_results(online_data, our_results, case_id, mode, tier, output_file)
-        
+
     except Exception as e:
         print(f"❌ 错误: {e}")
         import traceback
