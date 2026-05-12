@@ -297,6 +297,12 @@ def render_report(case, mode, sc, lp, gen, load, sim, gen_info, gen_existing=Non
         add(f'总年发电 = {gen_info["existing_gen_total"] + gen_info["added_gen_total"]:,.1f} kWh')
         add('```')
         add('')
+        add('### 计算示例（1 月第 9 小时）')
+        add('')
+        add(f'- 既有 PV 发电：{gen_existing[0][9]:.2f} kWh/小时（简化计算：容量 × 州年发电系数 × 月度占比 × 小时占比）')
+        add(f'- 新增 PV 发电：{gen_added[0][9]:.2f} kWh/小时（选板计算：从面板 monthlyHourlyPowerList 累加）')
+        add(f'- 总发电：{gen[0][9]:.2f} kWh/小时 = {gen_existing[0][9]:.2f} + {gen_added[0][9]:.2f}')
+        add('')
         add('### 发电矩阵（kWh/小时，典型日）')
         add('')
         add('| 月\\h | ' + ' | '.join(f'{h:02d}' for h in range(24)) + ' | 日合 |')
@@ -353,6 +359,12 @@ def render_report(case, mode, sc, lp, gen, load, sim, gen_info, gen_existing=Non
         add(f'总年发电 = {gen_info["added_gen_total"]:,.1f} kWh')
         add('```')
         add('')
+        add('### 计算示例（1 月第 9 小时）')
+        add('')
+        add(f'- 既有 PV 发电：0.00 kWh/小时（无既有 PV）')
+        add(f'- 新增 PV 发电：{gen[0][9]:.2f} kWh/小时（选板计算：从面板 monthlyHourlyPowerList 累加）')
+        add(f'- 总发电：{gen[0][9]:.2f} kWh/小时 = 0.00 + {gen[0][9]:.2f}')
+        add('')
         add('### 发电矩阵（kWh/小时，典型日）')
         add('')
         add('（同 2.2 新增 PV 发电矩阵）')
@@ -389,16 +401,49 @@ def render_report(case, mode, sc, lp, gen, load, sim, gen_info, gen_existing=Non
     # 5. 月度汇总
     add('## 5. 月度汇总')
     add('')
-    add('| 月 | 发电 | 用电 | 直接消纳 | 电池放电 | 馈网 | 购电 | 自用合计 | 月自用率 |')
-    add('|---|---|---|---|---|---|---|---|---|')
-    for r in sim['monthly']:
-        add(f'| {P.MONTH_ZH[r["month"]-1]} | {r["gen_kwh"]:,.1f} | {r["load_kwh"]:,.1f} | '
-            f'{r["direct"]:,.1f} | {r["discharge"]:,.1f} | {r["export"]:,.1f} | '
-            f'{r["import"]:,.1f} | {r["self_use"]:,.1f} | {r["SCR_month"]*100:.1f}% |')
-    add(f'| **合计** | **{sim["gen_total"]:,.1f}** | **{sim["load_total"]:,.1f}** | '
-        f'**{sim["direct"]:,.1f}** | **{sim["discharge"]:,.1f}** | **{sim["export"]:,.1f}** | '
-        f'**{sim["import_grid"]:,.1f}** | **{sim["self_use"]:,.1f}** | **{sim["SCR"]*100:.1f}%** |')
-    add('')
+    
+    if mode == 'R' and gen_existing and gen_added:
+        # R 模式：显示发电拆分
+        add('### 5.1 发电拆分（既有 PV + 新增 PV）')
+        add('')
+        add('| 月 | 既有 PV 发电 | 新增 PV 发电 | 总发电 |')
+        add('|---|---|---|---|')
+        for m in range(12):
+            existing_monthly = sum(gen_existing[m]) * P.DAYS_IN_MONTH[m]
+            added_monthly = sum(gen_added[m]) * P.DAYS_IN_MONTH[m]
+            total_monthly = sum(gen[m]) * P.DAYS_IN_MONTH[m]
+            add(f'| {P.MONTH_ZH[m]} | {existing_monthly:,.1f} | {added_monthly:,.1f} | {total_monthly:,.1f} |')
+        existing_total = sum(sum(row) * P.DAYS_IN_MONTH[i] for i, row in enumerate(gen_existing))
+        added_total = sum(sum(row) * P.DAYS_IN_MONTH[i] for i, row in enumerate(gen_added))
+        add(f'| **合计** | **{existing_total:,.1f}** | **{added_total:,.1f}** | **{sim["gen_total"]:,.1f}** |')
+        add('')
+
+        add('### 5.2 能量流汇总')
+        add('')
+        add('| 月 | 发电 | 用电 | 直接消纳 | 电池放电 | 馈网 | 购电 | 自用合计 | 月自用率 |')
+        add('|---|---|---|---|---|---|---|---|---|')
+        for r in sim['monthly']:
+            add(f'| {P.MONTH_ZH[r["month"]-1]} | {r["gen_kwh"]:,.1f} | {r["load_kwh"]:,.1f} | '
+                f'{r["direct"]:,.1f} | {r["discharge"]:,.1f} | {r["export"]:,.1f} | '
+                f'{r["import"]:,.1f} | {r["self_use"]:,.1f} | {r["SCR_month"]*100:.1f}% |')
+        add(f'| **合计** | **{sim["gen_total"]:,.1f}** | **{sim["load_total"]:,.1f}** | '
+            f'**{sim["direct"]:,.1f}** | **{sim["discharge"]:,.1f}** | **{sim["export"]:,.1f}** | '
+            f'**{sim["import_grid"]:,.1f}** | **{sim["self_use"]:,.1f}** | **{sim["SCR"]*100:.1f}%** |')
+        add('')
+    else:
+        # N 模式：无发电拆分，直接显示能量流汇总
+        add('### 能量流汇总')
+        add('')
+        add('| 月 | 发电 | 用电 | 直接消纳 | 电池放电 | 馈网 | 购电 | 自用合计 | 月自用率 |')
+        add('|---|---|---|---|---|---|---|---|---|')
+        for r in sim['monthly']:
+            add(f'| {P.MONTH_ZH[r["month"]-1]} | {r["gen_kwh"]:,.1f} | {r["load_kwh"]:,.1f} | '
+                f'{r["direct"]:,.1f} | {r["discharge"]:,.1f} | {r["export"]:,.1f} | '
+                f'{r["import"]:,.1f} | {r["self_use"]:,.1f} | {r["SCR_month"]*100:.1f}% |')
+        add(f'| **合计** | **{sim["gen_total"]:,.1f}** | **{sim["load_total"]:,.1f}** | '
+            f'**{sim["direct"]:,.1f}** | **{sim["discharge"]:,.1f}** | **{sim["export"]:,.1f}** | '
+            f'**{sim["import_grid"]:,.1f}** | **{sim["self_use"]:,.1f}** | **{sim["SCR"]*100:.1f}%** |')
+        add('')
 
     # 6. 关键指标
     add('## 6. 关键指标')
