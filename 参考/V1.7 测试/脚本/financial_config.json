@@ -1,0 +1,14 @@
+{
+  "buyPricePerKwh": 0.35,
+  "feedInTariffPerKwh": 0.08,
+  "dailyFixedFee": 1.0,
+  "priceInflationRate": 0.03,
+  "panelDegradationYear1": 0.02,
+  "panelDegradationAfterYear1": 0.005,
+  "selfConsumptionRate": 0.4,
+  "batteryCapacityKwh": 0.0,
+  "costPerKw": 1500.0,
+  "batteryCostPerKwh": 1000.0,
+  "subsidyPerKw": 1000.0,
+  "years": 20
+}

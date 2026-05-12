@@ -1,0 +1,196 @@
+{
+  "projectInfo": {
+    "id": 5794,
+    "projectCode": "34da8afd-26c8-4996-8a4d-a50aa5e664a7",
+    "address": "18 Sir Garnet Rd, Surrey Hills VIC 3127, Australia",
+    "countryCode": "AU",
+    "state": "VIC",
+    "city": "Surrey Hills",
+    "siteZip": "3127",
+    "longitude": 145.088885655,
+    "longitudeStr": "145.088885655",
+    "latitude": -37.821199088,
+    "latitudeStr": "-37.821199088",
+    "rowLayout": "{\"projectId\":5794,\"projectType\":1,\"gisMapType\":\"metromap_latest\",\"mapLink\":\"https://gs-api.onesimpleway.com/marketing/client/gis/agent/google_map?center_lon=145.088885655&center_lat=-37.821199088\",\"panelLocationInfos\":[{\"positions\":[7.03690767288208,5.582170486450195,13.540422439575195],\"aspect\":189.63453674316406,\"slope\":0.32644134759902954,\"positionIndexList\":[{\"roofId\":\"0\",\"x\":3,\"y\":0}]},{\"positions\":[8.492481231689453,5.621659755706787,13.540422439575195],\"aspect\":189.63453674316406,\"slope\":0.345691978931427,\"positionIndexList\":[{\"roofId\":\"0\",\"x\":4,\"y\":0}]},{\"positions\":[6.085399627685547,6.839373588562012,-3.078640937805176],\"aspect\":183.7407989501953,\"slope\":0.16031260788440704,\"positionIndexList\":[{\"roofId\":\"1\",\"x\":1,\"y\":1}]},{\"positions\":[6.085399627685547,6.830927848815918,-0.8549665212631226],\"aspect\":183.7407989501953,\"slope\":0.1657598912715912,\"positionIndexList\":[{\"roofId\":\"1\",\"x\":1,\"y\":2}]},{\"positions\":[-4.685460567474365,6.961813926696777,4.06220817565918],\"aspect\":95.1357650756836,\"slope\":0.27209076285362244,\"positionIndexList\":[{\"roofId\":\"2\",\"x\":4,\"y\":0}]},{\"positions\":[-3.229887008666992,6.967950344085693,4.06220817565918],\"aspect\":95.1357650756836,\"slope\":0.2780085504055023,\"positionIndexList\":[{\"roofId\":\"2\",\"x\":5,\"y\":0}]},{\"positions\":[-12.40505313873291,5.572424411773682,13.493633270263672],\"aspect\":183.7407989501953,\"slope\":0.32828187942504883,\"positionIndexList\":[{\"roofId\":\"3\",\"x\":3,\"y\":0}]},{\"positions\":[-10.949480056762695,5.557816505432129,13.493633270263672],\"aspect\":183.7407989501953,\"slope\":0.3188932240009308,\"positionIndexList\":[{\"roofId\":\"3\",\"x\":4,\"y\":0}]},{\"positions\":[3.235785484313965,6.988175392150879,8.552203178405762],\"aspect\":278.09039306640625,\"slope\":0.24878068268299103,\"positionIndexList\":[{\"roofId\":\"4\",\"x\":1,\"y\":0}]},{\"positions\":[4.691359043121338,6.976968765258789,8.552203178405762],\"aspect\":278.09039306640625,\"slope\":0.2773144543170929,\"positionIndexList\":[{\"roofId\":\"4\",\"x\":2,\"y\":0}]},{\"positions\":[-5.972223281860352,6.84482479095459,-6.107648849487305],\"aspect\":183.7407989501953,\"slope\":0.08049783110618591,\"positionIndexList\":[{\"roofId\":\"5\",\"x\":3,\"y\":0}]},{\"positions\":[-4.5166497230529785,6.8347954750061035,-6.107648849487305],\"aspect\":183.7407989501953,\"slope\":0.08739263564348221,\"positionIndexList\":[{\"roofId\":\"5\",\"x\":4,\"y\":0}]}]}",
+    "type": 1,
+    "installerCode": "gscode",
+    "mapLink": "https://gs-api.onesimpleway.com/marketing/client/gis/agent/google_map?center_lon=145.088885655&center_lat=-37.821199088",
+    "siteCountry": "Australia",
+    "siteRegion": "VIC",
+    "siteStreet": "18 Sir Garnet Road",
+    "analysisAddress": "18A Sir Garnet Rd, Surrey Hills VIC 3127, Australia",
+    "mapType": "metromap_latest"
+  },
+  "buildingInfo": {
+    "area": 321.1669107840862,
+    "image": "https://file.greensketch.ai/maps/au/sale_agent/image/metromap_latest/image_145.088885655_-37.821199088.jpg",
+    "flip_corrected_rotation_euler": [
+      0.0005460854736156762,
+      -6.240856170654297,
+      179.99948120117188
+    ],
+    "center": "145.088885655,-37.821199088",
+    "model_offset": [
+      2.5703133773058653,
+      2.456997930072248
+    ],
+    "box_max_length": 29.332088777605165,
+    "rotation_euler": [
+      -179.9994659423828,
+      6.240857124328613,
+      -179.99948120117188
+    ],
+    "image_clipped": "https://file.greensketch.ai/maps/au/sale_agent/image/metromap_latest/image_145.088885655_-37.821199088_clip.jpg",
+    "map_type": "metromap_latest",
+    "model": "https://file.greensketch.ai/oswai/prod/sam3d/1175f0d0-409a-451e-a872-81933d9ff57b.glb",
+    "with_pv": false,
+    "is_old": false,
+    "image_drawed": "https://file.greensketch.ai/maps/au/sale_agent/image/metromap_latest/image_145.088885655_-37.821199088_drawed.jpg",
+    "status": "completed"
+  },
+  "systemComposition": {
+    "initialPanelCount": 12,
+    "initialCapacityKw": 5.4,
+    "initialTotalGenerationKwh": 5499.087141991543,
+    "targetCapacityKw": 10.12,
+    "selectedPanelCount": 12,
+    "actualCapacityKw": 5.4,
+    "actualTotalGenerationKwh": 5499.087141991543,
+    "capacityUtilization": 1.0,
+    "generationUtilization": 1.0
+  },
+  "selectedPanels": [
+    {
+      "positions": [
+        3.235785484313965,
+        6.988175392150879,
+        8.552203178405762
+      ],
+      "aspect": 278.09039306640625,
+      "slope": 0.24878068268299103,
+      "annualGeneratePower": 543.8726358097465,
+      "roofId": "4"
+    },
+    {
+      "positions": [
+        4.691359043121338,
+        6.976968765258789,
+        8.552203178405762
+      ],
+      "aspect": 278.09039306640625,
+      "slope": 0.2773144543170929,
+      "annualGeneratePower": 543.8726358097465,
+      "roofId": "4"
+    },
+    {
+      "positions": [
+        -4.685460567474365,
+        6.961813926696777,
+        4.06220817565918
+      ],
+      "aspect": 95.1357650756836,
+      "slope": 0.27209076285362244,
+      "annualGeneratePower": 523.8567620145394,
+      "roofId": "2"
+    },
+    {
+      "positions": [
+        -3.229887008666992,
+        6.967950344085693,
+        4.06220817565918
+      ],
+      "aspect": 95.1357650756836,
+      "slope": 0.2780085504055023,
+      "annualGeneratePower": 523.8567620145394,
+      "roofId": "2"
+    },
+    {
+      "positions": [
+        7.03690767288208,
+        5.582170486450195,
+        13.540422439575195
+      ],
+      "aspect": 189.63453674316406,
+      "slope": 0.32644134759902954,
+      "annualGeneratePower": 421.4590219908209,
+      "roofId": "0"
+    },
+    {
+      "positions": [
+        8.492481231689453,
+        5.621659755706787,
+        13.540422439575195
+      ],
+      "aspect": 189.63453674316406,
+      "slope": 0.345691978931427,
+      "annualGeneratePower": 421.4590219908209,
+      "roofId": "0"
+    },
+    {
+      "positions": [
+        6.085399627685547,
+        6.830927848815918,
+        -0.8549665212631226
+      ],
+      "aspect": 183.7407989501953,
+      "slope": 0.1657598912715912,
+      "annualGeneratePower": 420.1183837268882,
+      "roofId": "1"
+    },
+    {
+      "positions": [
+        6.085399627685547,
+        6.839373588562012,
+        -3.078640937805176
+      ],
+      "aspect": 183.7407989501953,
+      "slope": 0.16031260788440704,
+      "annualGeneratePower": 420.1183837268882,
+      "roofId": "1"
+    },
+    {
+      "positions": [
+        -12.40505313873291,
+        5.572424411773682,
+        13.493633270263672
+      ],
+      "aspect": 183.7407989501953,
+      "slope": 0.32828187942504883,
+      "annualGeneratePower": 420.1183837268882,
+      "roofId": "3"
+    },
+    {
+      "positions": [
+        -10.949480056762695,
+        5.557816505432129,
+        13.493633270263672
+      ],
+      "aspect": 183.7407989501953,
+      "slope": 0.3188932240009308,
+      "annualGeneratePower": 420.1183837268882,
+      "roofId": "3"
+    },
+    {
+      "positions": [
+        -5.972223281860352,
+        6.84482479095459,
+        -6.107648849487305
+      ],
+      "aspect": 183.7407989501953,
+      "slope": 0.08049783110618591,
+      "annualGeneratePower": 420.1183837268882,
+      "roofId": "5"
+    },
+    {
+      "positions": [
+        -4.5166497230529785,
+        6.8347954750061035,
+        -6.107648849487305
+      ],
+      "aspect": 183.7407989501953,
+      "slope": 0.08739263564348221,
+      "annualGeneratePower": 420.1183837268882,
+      "roofId": "5"
+    }
+  ]
+}

@@ -1,0 +1,467 @@
+{
+  "projectInfo": {
+    "id": 5810,
+    "projectCode": "8c271de5-6886-4ddd-9f6d-389e8410ee72",
+    "address": "46 Falstaff St, Sunnybank Hills QLD 4109, Australia",
+    "countryCode": "AU",
+    "state": "QLD",
+    "city": "Sunnybank Hills",
+    "siteZip": "4109",
+    "longitude": 153.0503073,
+    "longitudeStr": "153.0503073",
+    "latitude": -27.6063809,
+    "latitudeStr": "-27.6063809",
+    "rowLayout": "{\"projectId\":5810,\"projectType\":2,\"gisMapType\":\"metromap_latest\",\"mapLink\":\"https://gs-api.onesimpleway.com/marketing/client/gis/agent/google_map?center_lon=153.0503073&center_lat=-27.6063809\",\"panelLocationInfos\":[{\"positions\":[-7.415775299072266,3.7874929904937744,7.499116897583008],\"aspect\":8.917342185974121,\"slope\":0.27389538288116455,\"positionIndexList\":[{\"roofId\":\"0\",\"x\":1,\"y\":1}]},{\"positions\":[-6.116085529327393,3.7873895168304443,7.499116897583008],\"aspect\":8.917342185974121,\"slope\":0.28279730677604675,\"positionIndexList\":[{\"roofId\":\"0\",\"x\":2,\"y\":1}]},{\"positions\":[-8.458344459533691,4.273375988006592,4.156710624694824],\"aspect\":93.95405578613281,\"slope\":0.27107667922973633,\"positionIndexList\":[{\"roofId\":\"1\",\"x\":1,\"y\":0}]},{\"positions\":[-7.158654689788818,4.273713111877441,4.156710624694824],\"aspect\":93.95405578613281,\"slope\":0.2862432301044464,\"positionIndexList\":[{\"roofId\":\"1\",\"x\":2,\"y\":0}]},{\"positions\":[-1.454761266708374,5.752093315124512,2.7980947494506836],\"aspect\":97.1125717163086,\"slope\":0.40366891026496887,\"positionIndexList\":[{\"roofId\":\"2\",\"x\":3,\"y\":0}]},{\"positions\":[-0.15507102012634277,5.757508754730225,2.7980947494506836],\"aspect\":97.1125717163086,\"slope\":0.4083314836025238,\"positionIndexList\":[{\"roofId\":\"2\",\"x\":4,\"y\":0}]},{\"positions\":[1.1446192264556885,5.757452011108398,2.7980947494506836],\"aspect\":97.1125717163086,\"slope\":0.41123712062835693,\"positionIndexList\":[{\"roofId\":\"2\",\"x\":5,\"y\":0}]},{\"positions\":[2.4443089962005615,5.753496170043945,2.7980947494506836],\"aspect\":97.1125717163086,\"slope\":0.4067705571651459,\"positionIndexList\":[{\"roofId\":\"2\",\"x\":6,\"y\":0}]},{\"positions\":[-6.731776714324951,5.593575954437256,-0.6197120547294617],\"aspect\":187.84765625,\"slope\":0.35395553708076477,\"positionIndexList\":[{\"roofId\":\"3\",\"x\":1,\"y\":0}]},{\"positions\":[-5.43208646774292,5.593199253082275,-0.6197120547294617],\"aspect\":187.84765625,\"slope\":0.35895612835884094,\"positionIndexList\":[{\"roofId\":\"3\",\"x\":2,\"y\":0}]},{\"positions\":[-4.132396697998047,5.587758541107178,-0.6197120547294617],\"aspect\":187.84765625,\"slope\":0.36021873354911804,\"positionIndexList\":[{\"roofId\":\"3\",\"x\":3,\"y\":0}]},{\"positions\":[7.660915851593018,4.288956165313721,-2.0879015922546387],\"aspect\":277.015380859375,\"slope\":0.25798460841178894,\"positionIndexList\":[{\"roofId\":\"4\",\"x\":1,\"y\":0}]},{\"positions\":[7.660915851593018,3.7755391597747803,-0.14627885818481445],\"aspect\":277.015380859375,\"slope\":0.28079384565353394,\"positionIndexList\":[{\"roofId\":\"4\",\"x\":1,\"y\":1}]},{\"positions\":[8.960606575012207,4.2883710861206055,-2.0879015922546387],\"aspect\":277.015380859375,\"slope\":0.25667378306388855,\"positionIndexList\":[{\"roofId\":\"4\",\"x\":2,\"y\":0}]},{\"positions\":[8.960606575012207,3.775484085083008,-0.14627885818481445],\"aspect\":277.015380859375,\"slope\":0.28032198548316956,\"positionIndexList\":[{\"roofId\":\"4\",\"x\":2,\"y\":1}]},{\"positions\":[0.6787378787994385,5.781514644622803,1.6489355564117432],\"aspect\":277.47064208984375,\"slope\":0.34039023518562317,\"positionIndexList\":[{\"roofId\":\"5\",\"x\":3,\"y\":0}]},{\"positions\":[1.9784281253814697,5.781583309173584,1.6489355564117432],\"aspect\":277.47064208984375,\"slope\":0.3491414785385132,\"positionIndexList\":[{\"roofId\":\"5\",\"x\":4,\"y\":0}]}]}",
+    "type": 2,
+    "installerCode": "gscode",
+    "mapLink": "https://gs-api.onesimpleway.com/marketing/client/gis/agent/google_map?center_lon=153.0503073&center_lat=-27.6063809",
+    "siteCountry": "Australia",
+    "siteRegion": "QLD",
+    "siteStreet": "46 Falstaff Street",
+    "analysisAddress": "46 Falstaff St, Sunnybank Hills QLD 4109, Australia",
+    "mapType": "metromap_latest"
+  },
+  "buildingInfo": {
+    "area": 233.87282977235736,
+    "image": "https://file.greensketch.ai/maps/au/sale_agent/image/metromap_latest/image_153.0503073_-27.6063809.jpg",
+    "flip_corrected_rotation_euler": [
+      -7.696605462115258e-05,
+      -7.042741298675537,
+      179.99972534179688
+    ],
+    "center": "153.0503073,-27.6063809",
+    "model_offset": [
+      0.3374832607805729,
+      -0.08333644084632397
+    ],
+    "box_max_length": 20.28069204356166,
+    "rotation_euler": [
+      179.9999237060547,
+      7.042741775512695,
+      -179.99972534179688
+    ],
+    "image_clipped": "https://file.greensketch.ai/maps/au/sale_agent/image/metromap_latest/image_153.0503073_-27.6063809_clip.jpg",
+    "map_type": "metromap_latest",
+    "model": "https://file.greensketch.ai/oswai/prod/sam3d/267df419-9e4c-4e69-9b68-e0585be2f895.glb",
+    "with_pv": true,
+    "is_old": false,
+    "image_drawed": "https://file.greensketch.ai/maps/au/sale_agent/image/metromap_latest/image_153.0503073_-27.6063809_drawed.jpg",
+    "status": "completed"
+  },
+  "state": "QLD",
+  "initialSystem": {
+    "panelCount": 17,
+    "capacityKw": 7.48,
+    "totalGenerationKwh": 9798.751118116763
+  },
+  "consumption": {
+    "annual_kwh": 7270,
+    "daily_avg_kwh": 19.91780821917808,
+    "daytime_kwh": 8.838726575342465,
+    "daytime_ratio": 0.44376,
+    "evening_peak_kwh": 4.695224931506849,
+    "evening_peak_ratio": 0.23573,
+    "night_kwh": 11.078683287671232,
+    "night_ratio": 0.55622
+  },
+  "plans": {
+    "maxValue": {
+      "plan": "A",
+      "panelCount": 10,
+      "capacityKw": 4.4,
+      "annualGenerationKwh": 6054.596887304553,
+      "inverterKw": 5,
+      "ratioPercent": 88.0,
+      "batteryNominalKwh": 13.5,
+      "batteryCalcKwh": 12.96,
+      "pvSurplusKwh": 7.75,
+      "selectedPanels": [
+        {
+          "positions": [
+            -8.458344459533691,
+            4.273375988006592,
+            4.156710624694824
+          ],
+          "aspect": 93.95405578613281,
+          "slope": 0.27107667922973633,
+          "annualGeneratePower": 582.0210535127611,
+          "roofId": "1"
+        },
+        {
+          "positions": [
+            -7.158654689788818,
+            4.273713111877441,
+            4.156710624694824
+          ],
+          "aspect": 93.95405578613281,
+          "slope": 0.2862432301044464,
+          "annualGeneratePower": 582.0210535127611,
+          "roofId": "1"
+        },
+        {
+          "positions": [
+            7.660915851593018,
+            3.7755391597747803,
+            -0.14627885818481445
+          ],
+          "aspect": 277.015380859375,
+          "slope": 0.28079384565353394,
+          "annualGeneratePower": 592.3464488269658,
+          "roofId": "4"
+        },
+        {
+          "positions": [
+            8.960606575012207,
+            3.775484085083008,
+            -0.14627885818481445
+          ],
+          "aspect": 277.015380859375,
+          "slope": 0.28032198548316956,
+          "annualGeneratePower": 592.3464488269658,
+          "roofId": "4"
+        },
+        {
+          "positions": [
+            7.660915851593018,
+            4.288956165313721,
+            -2.0879015922546387
+          ],
+          "aspect": 277.015380859375,
+          "slope": 0.25798460841178894,
+          "annualGeneratePower": 592.3464488269658,
+          "roofId": "4"
+        },
+        {
+          "positions": [
+            8.960606575012207,
+            4.2883710861206055,
+            -2.0879015922546387
+          ],
+          "aspect": 277.015380859375,
+          "slope": 0.25667378306388855,
+          "annualGeneratePower": 592.3464488269658,
+          "roofId": "4"
+        },
+        {
+          "positions": [
+            0.6787378787994385,
+            5.781514644622803,
+            1.6489355564117432
+          ],
+          "aspect": 277.47064208984375,
+          "slope": 0.34039023518562317,
+          "annualGeneratePower": 593.0411593065332,
+          "roofId": "5"
+        },
+        {
+          "positions": [
+            1.9784281253814697,
+            5.781583309173584,
+            1.6489355564117432
+          ],
+          "aspect": 277.47064208984375,
+          "slope": 0.3491414785385132,
+          "annualGeneratePower": 593.0411593065332,
+          "roofId": "5"
+        },
+        {
+          "positions": [
+            -7.415775299072266,
+            3.7874929904937744,
+            7.499116897583008
+          ],
+          "aspect": 8.917342185974121,
+          "slope": 0.27389538288116455,
+          "annualGeneratePower": 667.5433331790512,
+          "roofId": "0"
+        },
+        {
+          "positions": [
+            -6.116085529327393,
+            3.7873895168304443,
+            7.499116897583008
+          ],
+          "aspect": 8.917342185974121,
+          "slope": 0.28279730677604675,
+          "annualGeneratePower": 667.5433331790512,
+          "roofId": "0"
+        }
+      ]
+    },
+    "mostPopular": {
+      "plan": "B",
+      "panelCount": 10,
+      "capacityKw": 4.4,
+      "annualGenerationKwh": 6054.596887304553,
+      "inverterKw": 5,
+      "ratioPercent": 88.0,
+      "batteryNominalKwh": 6.5,
+      "batteryCalcKwh": 5.49,
+      "pvSurplusKwh": 7.75,
+      "selectedPanels": [
+        {
+          "positions": [
+            -8.458344459533691,
+            4.273375988006592,
+            4.156710624694824
+          ],
+          "aspect": 93.95405578613281,
+          "slope": 0.27107667922973633,
+          "annualGeneratePower": 582.0210535127611,
+          "roofId": "1"
+        },
+        {
+          "positions": [
+            -7.158654689788818,
+            4.273713111877441,
+            4.156710624694824
+          ],
+          "aspect": 93.95405578613281,
+          "slope": 0.2862432301044464,
+          "annualGeneratePower": 582.0210535127611,
+          "roofId": "1"
+        },
+        {
+          "positions": [
+            7.660915851593018,
+            3.7755391597747803,
+            -0.14627885818481445
+          ],
+          "aspect": 277.015380859375,
+          "slope": 0.28079384565353394,
+          "annualGeneratePower": 592.3464488269658,
+          "roofId": "4"
+        },
+        {
+          "positions": [
+            8.960606575012207,
+            3.775484085083008,
+            -0.14627885818481445
+          ],
+          "aspect": 277.015380859375,
+          "slope": 0.28032198548316956,
+          "annualGeneratePower": 592.3464488269658,
+          "roofId": "4"
+        },
+        {
+          "positions": [
+            7.660915851593018,
+            4.288956165313721,
+            -2.0879015922546387
+          ],
+          "aspect": 277.015380859375,
+          "slope": 0.25798460841178894,
+          "annualGeneratePower": 592.3464488269658,
+          "roofId": "4"
+        },
+        {
+          "positions": [
+            8.960606575012207,
+            4.2883710861206055,
+            -2.0879015922546387
+          ],
+          "aspect": 277.015380859375,
+          "slope": 0.25667378306388855,
+          "annualGeneratePower": 592.3464488269658,
+          "roofId": "4"
+        },
+        {
+          "positions": [
+            0.6787378787994385,
+            5.781514644622803,
+            1.6489355564117432
+          ],
+          "aspect": 277.47064208984375,
+          "slope": 0.34039023518562317,
+          "annualGeneratePower": 593.0411593065332,
+          "roofId": "5"
+        },
+        {
+          "positions": [
+            1.9784281253814697,
+            5.781583309173584,
+            1.6489355564117432
+          ],
+          "aspect": 277.47064208984375,
+          "slope": 0.3491414785385132,
+          "annualGeneratePower": 593.0411593065332,
+          "roofId": "5"
+        },
+        {
+          "positions": [
+            -7.415775299072266,
+            3.7874929904937744,
+            7.499116897583008
+          ],
+          "aspect": 8.917342185974121,
+          "slope": 0.27389538288116455,
+          "annualGeneratePower": 667.5433331790512,
+          "roofId": "0"
+        },
+        {
+          "positions": [
+            -6.116085529327393,
+            3.7873895168304443,
+            7.499116897583008
+          ],
+          "aspect": 8.917342185974121,
+          "slope": 0.28279730677604675,
+          "annualGeneratePower": 667.5433331790512,
+          "roofId": "0"
+        }
+      ]
+    },
+    "customFit": {
+      "plan": "C",
+      "panelCount": 10,
+      "capacityKw": 4.4,
+      "annualGenerationKwh": 6054.596887304553,
+      "inverterKw": 5,
+      "ratioPercent": 88.0,
+      "batteryNominalKwh": 6.5,
+      "batteryCalcKwh": 5.49,
+      "pvSurplusKwh": 7.75,
+      "selectedPanels": [
+        {
+          "positions": [
+            -8.458344459533691,
+            4.273375988006592,
+            4.156710624694824
+          ],
+          "aspect": 93.95405578613281,
+          "slope": 0.27107667922973633,
+          "annualGeneratePower": 582.0210535127611,
+          "roofId": "1"
+        },
+        {
+          "positions": [
+            -7.158654689788818,
+            4.273713111877441,
+            4.156710624694824
+          ],
+          "aspect": 93.95405578613281,
+          "slope": 0.2862432301044464,
+          "annualGeneratePower": 582.0210535127611,
+          "roofId": "1"
+        },
+        {
+          "positions": [
+            7.660915851593018,
+            3.7755391597747803,
+            -0.14627885818481445
+          ],
+          "aspect": 277.015380859375,
+          "slope": 0.28079384565353394,
+          "annualGeneratePower": 592.3464488269658,
+          "roofId": "4"
+        },
+        {
+          "positions": [
+            8.960606575012207,
+            3.775484085083008,
+            -0.14627885818481445
+          ],
+          "aspect": 277.015380859375,
+          "slope": 0.28032198548316956,
+          "annualGeneratePower": 592.3464488269658,
+          "roofId": "4"
+        },
+        {
+          "positions": [
+            7.660915851593018,
+            4.288956165313721,
+            -2.0879015922546387
+          ],
+          "aspect": 277.015380859375,
+          "slope": 0.25798460841178894,
+          "annualGeneratePower": 592.3464488269658,
+          "roofId": "4"
+        },
+        {
+          "positions": [
+            8.960606575012207,
+            4.2883710861206055,
+            -2.0879015922546387
+          ],
+          "aspect": 277.015380859375,
+          "slope": 0.25667378306388855,
+          "annualGeneratePower": 592.3464488269658,
+          "roofId": "4"
+        },
+        {
+          "positions": [
+            0.6787378787994385,
+            5.781514644622803,
+            1.6489355564117432
+          ],
+          "aspect": 277.47064208984375,
+          "slope": 0.34039023518562317,
+          "annualGeneratePower": 593.0411593065332,
+          "roofId": "5"
+        },
+        {
+          "positions": [
+            1.9784281253814697,
+            5.781583309173584,
+            1.6489355564117432
+          ],
+          "aspect": 277.47064208984375,
+          "slope": 0.3491414785385132,
+          "annualGeneratePower": 593.0411593065332,
+          "roofId": "5"
+        },
+        {
+          "positions": [
+            -7.415775299072266,
+            3.7874929904937744,
+            7.499116897583008
+          ],
+          "aspect": 8.917342185974121,
+          "slope": 0.27389538288116455,
+          "annualGeneratePower": 667.5433331790512,
+          "roofId": "0"
+        },
+        {
+          "positions": [
+            -6.116085529327393,
+            3.7873895168304443,
+            7.499116897583008
+          ],
+          "aspect": 8.917342185974121,
+          "slope": 0.28279730677604675,
+          "annualGeneratePower": 667.5433331790512,
+          "roofId": "0"
+        }
+      ]
+    }
+  },
+  "comparisons": [
+    {
+      "plan": "A",
+      "label": "maxValue",
+      "allMatch": true,
+      "mode": "expansion",
+      "differences": [],
+      "calcPretax": 13077.5,
+      "calcWithTax": 14385.250000000002,
+      "apiInitialCost": 5114.0
+    },
+    {
+      "plan": "B",
+      "label": "mostPopular",
+      "allMatch": true,
+      "mode": "expansion",
+      "differences": [],
+      "calcPretax": 7022.5,
+      "calcWithTax": 7724.750000000001,
+      "apiInitialCost": 3700.0
+    },
+    {
+      "plan": "C",
+      "label": "customFit",
+      "allMatch": true,
+      "mode": "expansion",
+      "differences": []
+    }
+  ]
+}

@@ -1,0 +1,404 @@
+{
+  "projectInfo": {
+    "id": 8793,
+    "projectCode": "186716dd-02ba-4733-9f82-e78111b40620",
+    "address": "11 Hastings St, Kamerunga QLD 4870, Australia",
+    "countryCode": "AU",
+    "state": "QLD",
+    "city": "Kamerunga",
+    "siteZip": "4870",
+    "longitude": 145.6883198,
+    "longitudeStr": "145.6883198",
+    "latitude": -16.8778542,
+    "latitudeStr": "-16.8778542",
+    "rowLayout": "{\"projectId\":8793,\"projectType\":1,\"gisMapType\":\"metromap_latest\",\"mapLink\":\"https://au-api.onesimpleway.com/marketing/client/gis/agent/google_map?center_lon=145.6883198&center_lat=-16.8778542\",\"panelLocationInfos\":[{\"positions\":[2.8422207832336426,5.352169990539551,3.9233076572418213],\"aspect\":184.33042907714844,\"slope\":0.4043509066104889,\"positionIndexList\":[{\"roofId\":\"0\",\"x\":2,\"y\":0}]},{\"positions\":[4.047265529632568,5.347212791442871,3.9233076572418213],\"aspect\":184.33042907714844,\"slope\":0.4009711742401123,\"positionIndexList\":[{\"roofId\":\"0\",\"x\":3,\"y\":0}]},{\"positions\":[-2.2287533283233643,6.122513771057129,1.1451737880706787],\"aspect\":3.9035489559173584,\"slope\":0.3328828513622284,\"positionIndexList\":[{\"roofId\":\"1\",\"x\":1,\"y\":0}]},{\"positions\":[-1.0237085819244385,6.121213436126709,1.1451737880706787],\"aspect\":3.9035489559173584,\"slope\":0.33560043573379517,\"positionIndexList\":[{\"roofId\":\"1\",\"x\":2,\"y\":0}]},{\"positions\":[-2.7708513736724854,5.160362243652344,6.73248291015625],\"aspect\":183.20367431640625,\"slope\":0.504381000995636,\"positionIndexList\":[{\"roofId\":\"2\",\"x\":2,\"y\":1}]},{\"positions\":[-1.5658066272735596,5.1696577072143555,6.73248291015625],\"aspect\":183.20367431640625,\"slope\":0.5026047825813293,\"positionIndexList\":[{\"roofId\":\"2\",\"x\":3,\"y\":1}]},{\"positions\":[-0.19676321744918823,5.397787570953369,8.122349739074707],\"aspect\":273.5713806152344,\"slope\":0.4383004903793335,\"positionIndexList\":[{\"roofId\":\"3\",\"x\":3,\"y\":1}]},{\"positions\":[1.0082815885543823,5.400044918060303,8.122349739074707],\"aspect\":273.5713806152344,\"slope\":0.4424286484718323,\"positionIndexList\":[{\"roofId\":\"3\",\"x\":4,\"y\":1}]}]}",
+    "type": 1,
+    "installerCode": "gscode",
+    "mapLink": "https://au-api.onesimpleway.com/marketing/client/gis/agent/google_map?center_lon=145.6883198&center_lat=-16.8778542",
+    "siteCountry": "Australia",
+    "siteRegion": "QLD",
+    "siteStreet": "11 Hastings Street",
+    "analysisAddress": "11 Hastings St, Kamerunga QLD 4870, Australia",
+    "mapType": "metromap_latest"
+  },
+  "buildingInfo": {
+    "area": 205.56856738001443,
+    "image": "https://file.greensketch.ai/maps/au/sale_agent/image/metromap_latest/image_145.6883198_-16.8778542.jpg",
+    "flip_corrected_rotation_euler": [
+      -0.0021777779329568148,
+      -3.9454805850982666,
+      179.9981689453125
+    ],
+    "center": "145.6883198,-16.8778542",
+    "model_offset": [
+      0.2122163325548172,
+      0.5746584562584758
+    ],
+    "box_max_length": 20.162290138238323,
+    "rotation_euler": [
+      179.99783325195312,
+      3.945481777191162,
+      -179.9981689453125
+    ],
+    "image_clipped": "https://file.greensketch.ai/maps/au/sale_agent/image/metromap_latest/image_145.6883198_-16.8778542_clip.jpg",
+    "map_type": "metromap_latest",
+    "model": "https://file.greensketch.ai/oswai/prod/sam3d/cdcd1177-3458-4a7f-8be0-b40ec3249aff.glb",
+    "with_pv": false,
+    "is_old": false,
+    "image_drawed": "https://file.greensketch.ai/maps/au/sale_agent/image/metromap_latest/image_145.6883198_-16.8778542_drawed.jpg",
+    "status": "completed"
+  },
+  "state": "QLD",
+  "initialSystem": {
+    "panelCount": 8,
+    "capacityKw": 3.52,
+    "totalGenerationKwh": 4721.3324520073575
+  },
+  "consumption": {
+    "annual_kwh": 7270,
+    "daily_avg_kwh": 19.91780821917808,
+    "daytime_kwh": 8.838726575342465,
+    "daytime_ratio": 0.44376,
+    "evening_peak_kwh": 4.695224931506849,
+    "evening_peak_ratio": 0.23573,
+    "night_kwh": 11.078683287671232,
+    "night_ratio": 0.55622
+  },
+  "plans": {
+    "maxValue": {
+      "plan": "A",
+      "panelCount": 8,
+      "capacityKw": 3.52,
+      "annualGenerationKwh": 4721.3324520073575,
+      "inverterKw": 5,
+      "ratioPercent": 70.4,
+      "batteryNominalKwh": 13.5,
+      "batteryCalcKwh": 12.96,
+      "pvSurplusKwh": 4.1,
+      "selectedPanels": [
+        {
+          "positions": [
+            -2.7708513736724854,
+            5.160362243652344,
+            6.73248291015625
+          ],
+          "aspect": 183.20367431640625,
+          "slope": 0.504381000995636,
+          "annualGeneratePower": 546.2376288415301,
+          "roofId": "2"
+        },
+        {
+          "positions": [
+            -1.5658066272735596,
+            5.1696577072143555,
+            6.73248291015625
+          ],
+          "aspect": 183.20367431640625,
+          "slope": 0.5026047825813293,
+          "annualGeneratePower": 546.2376288415301,
+          "roofId": "2"
+        },
+        {
+          "positions": [
+            2.8422207832336426,
+            5.352169990539551,
+            3.9233076572418213
+          ],
+          "aspect": 184.33042907714844,
+          "slope": 0.4043509066104889,
+          "annualGeneratePower": 546.3130528155267,
+          "roofId": "0"
+        },
+        {
+          "positions": [
+            4.047265529632568,
+            5.347212791442871,
+            3.9233076572418213
+          ],
+          "aspect": 184.33042907714844,
+          "slope": 0.4009711742401123,
+          "annualGeneratePower": 546.3130528155267,
+          "roofId": "0"
+        },
+        {
+          "positions": [
+            -0.19676321744918823,
+            5.397787570953369,
+            8.122349739074707
+          ],
+          "aspect": 273.5713806152344,
+          "slope": 0.4383004903793335,
+          "annualGeneratePower": 611.0356719186038,
+          "roofId": "3"
+        },
+        {
+          "positions": [
+            1.0082815885543823,
+            5.400044918060303,
+            8.122349739074707
+          ],
+          "aspect": 273.5713806152344,
+          "slope": 0.4424286484718323,
+          "annualGeneratePower": 611.0356719186038,
+          "roofId": "3"
+        },
+        {
+          "positions": [
+            -2.2287533283233643,
+            6.122513771057129,
+            1.1451737880706787
+          ],
+          "aspect": 3.9035489559173584,
+          "slope": 0.3328828513622284,
+          "annualGeneratePower": 657.0798724280183,
+          "roofId": "1"
+        },
+        {
+          "positions": [
+            -1.0237085819244385,
+            6.121213436126709,
+            1.1451737880706787
+          ],
+          "aspect": 3.9035489559173584,
+          "slope": 0.33560043573379517,
+          "annualGeneratePower": 657.0798724280183,
+          "roofId": "1"
+        }
+      ]
+    },
+    "mostPopular": {
+      "plan": "B",
+      "panelCount": 8,
+      "capacityKw": 3.52,
+      "annualGenerationKwh": 4721.3324520073575,
+      "inverterKw": 5,
+      "ratioPercent": 70.4,
+      "batteryNominalKwh": 6.5,
+      "batteryCalcKwh": 5.49,
+      "pvSurplusKwh": 4.1,
+      "selectedPanels": [
+        {
+          "positions": [
+            -2.7708513736724854,
+            5.160362243652344,
+            6.73248291015625
+          ],
+          "aspect": 183.20367431640625,
+          "slope": 0.504381000995636,
+          "annualGeneratePower": 546.2376288415301,
+          "roofId": "2"
+        },
+        {
+          "positions": [
+            -1.5658066272735596,
+            5.1696577072143555,
+            6.73248291015625
+          ],
+          "aspect": 183.20367431640625,
+          "slope": 0.5026047825813293,
+          "annualGeneratePower": 546.2376288415301,
+          "roofId": "2"
+        },
+        {
+          "positions": [
+            2.8422207832336426,
+            5.352169990539551,
+            3.9233076572418213
+          ],
+          "aspect": 184.33042907714844,
+          "slope": 0.4043509066104889,
+          "annualGeneratePower": 546.3130528155267,
+          "roofId": "0"
+        },
+        {
+          "positions": [
+            4.047265529632568,
+            5.347212791442871,
+            3.9233076572418213
+          ],
+          "aspect": 184.33042907714844,
+          "slope": 0.4009711742401123,
+          "annualGeneratePower": 546.3130528155267,
+          "roofId": "0"
+        },
+        {
+          "positions": [
+            -0.19676321744918823,
+            5.397787570953369,
+            8.122349739074707
+          ],
+          "aspect": 273.5713806152344,
+          "slope": 0.4383004903793335,
+          "annualGeneratePower": 611.0356719186038,
+          "roofId": "3"
+        },
+        {
+          "positions": [
+            1.0082815885543823,
+            5.400044918060303,
+            8.122349739074707
+          ],
+          "aspect": 273.5713806152344,
+          "slope": 0.4424286484718323,
+          "annualGeneratePower": 611.0356719186038,
+          "roofId": "3"
+        },
+        {
+          "positions": [
+            -2.2287533283233643,
+            6.122513771057129,
+            1.1451737880706787
+          ],
+          "aspect": 3.9035489559173584,
+          "slope": 0.3328828513622284,
+          "annualGeneratePower": 657.0798724280183,
+          "roofId": "1"
+        },
+        {
+          "positions": [
+            -1.0237085819244385,
+            6.121213436126709,
+            1.1451737880706787
+          ],
+          "aspect": 3.9035489559173584,
+          "slope": 0.33560043573379517,
+          "annualGeneratePower": 657.0798724280183,
+          "roofId": "1"
+        }
+      ]
+    },
+    "customFit": {
+      "plan": "C",
+      "panelCount": 8,
+      "capacityKw": 3.52,
+      "annualGenerationKwh": 4721.3324520073575,
+      "inverterKw": 5,
+      "ratioPercent": 70.4,
+      "batteryNominalKwh": 6.5,
+      "batteryCalcKwh": 5.49,
+      "pvSurplusKwh": 4.1,
+      "selectedPanels": [
+        {
+          "positions": [
+            -2.7708513736724854,
+            5.160362243652344,
+            6.73248291015625
+          ],
+          "aspect": 183.20367431640625,
+          "slope": 0.504381000995636,
+          "annualGeneratePower": 546.2376288415301,
+          "roofId": "2"
+        },
+        {
+          "positions": [
+            -1.5658066272735596,
+            5.1696577072143555,
+            6.73248291015625
+          ],
+          "aspect": 183.20367431640625,
+          "slope": 0.5026047825813293,
+          "annualGeneratePower": 546.2376288415301,
+          "roofId": "2"
+        },
+        {
+          "positions": [
+            2.8422207832336426,
+            5.352169990539551,
+            3.9233076572418213
+          ],
+          "aspect": 184.33042907714844,
+          "slope": 0.4043509066104889,
+          "annualGeneratePower": 546.3130528155267,
+          "roofId": "0"
+        },
+        {
+          "positions": [
+            4.047265529632568,
+            5.347212791442871,
+            3.9233076572418213
+          ],
+          "aspect": 184.33042907714844,
+          "slope": 0.4009711742401123,
+          "annualGeneratePower": 546.3130528155267,
+          "roofId": "0"
+        },
+        {
+          "positions": [
+            -0.19676321744918823,
+            5.397787570953369,
+            8.122349739074707
+          ],
+          "aspect": 273.5713806152344,
+          "slope": 0.4383004903793335,
+          "annualGeneratePower": 611.0356719186038,
+          "roofId": "3"
+        },
+        {
+          "positions": [
+            1.0082815885543823,
+            5.400044918060303,
+            8.122349739074707
+          ],
+          "aspect": 273.5713806152344,
+          "slope": 0.4424286484718323,
+          "annualGeneratePower": 611.0356719186038,
+          "roofId": "3"
+        },
+        {
+          "positions": [
+            -2.2287533283233643,
+            6.122513771057129,
+            1.1451737880706787
+          ],
+          "aspect": 3.9035489559173584,
+          "slope": 0.3328828513622284,
+          "annualGeneratePower": 657.0798724280183,
+          "roofId": "1"
+        },
+        {
+          "positions": [
+            -1.0237085819244385,
+            6.121213436126709,
+            1.1451737880706787
+          ],
+          "aspect": 3.9035489559173584,
+          "slope": 0.33560043573379517,
+          "annualGeneratePower": 657.0798724280183,
+          "roofId": "1"
+        }
+      ]
+    }
+  },
+  "comparisons": [
+    {
+      "plan": "A",
+      "label": "maxValue",
+      "allMatch": true,
+      "panelCountMatch": true,
+      "panelListMatch": true,
+      "capacityMatch": true,
+      "generationMatch": true,
+      "diffs": []
+    },
+    {
+      "plan": "B",
+      "label": "mostPopular",
+      "allMatch": true,
+      "panelCountMatch": true,
+      "panelListMatch": true,
+      "capacityMatch": true,
+      "generationMatch": true,
+      "diffs": []
+    },
+    {
+      "plan": "C",
+      "label": "customFit",
+      "allMatch": true,
+      "panelCountMatch": true,
+      "panelListMatch": true,
+      "capacityMatch": true,
+      "generationMatch": true,
+      "diffs": []
+    }
+  ]
+}

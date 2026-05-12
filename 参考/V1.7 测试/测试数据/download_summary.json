@@ -1,0 +1,49 @@
+{
+  "11260": {
+    "request": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/11260/request.json",
+      "path": "../../../V1.7 测试/测试数据/11260/request.json",
+      "success": true
+    },
+    "panel_location": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/11260/panel_location.json",
+      "path": "../../../V1.7 测试/测试数据/11260/panel_location.json",
+      "success": true
+    },
+    "detect_building": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/11260/detect_building.json",
+      "path": "../../../V1.7 测试/测试数据/11260/detect_building.json",
+      "success": true
+    },
+    "maxValue_panel_location": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/11260/maxValue_panel_location.json",
+      "path": "../../../V1.7 测试/测试数据/11260/maxValue_panel_location.json",
+      "success": true
+    },
+    "maxValue_cashflow": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/11260/maxValue_cashflow.json",
+      "path": "../../../V1.7 测试/测试数据/11260/maxValue_cashflow.json",
+      "success": true
+    },
+    "mostPopular_panel_location": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/11260/mostPopular_panel_location.json",
+      "path": "../../../V1.7 测试/测试数据/11260/mostPopular_panel_location.json",
+      "success": true
+    },
+    "mostPopular_cashflow": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/11260/mostPopular_cashflow.json",
+      "path": "../../../V1.7 测试/测试数据/11260/mostPopular_cashflow.json",
+      "success": true
+    },
+    "customFit_panel_location": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/11260/customFit_panel_location.json",
+      "path": "../../../V1.7 测试/测试数据/11260/customFit_panel_location.json",
+      "success": true
+    },
+    "customFit_cashflow": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/11260/customFit_cashflow.json",
+      "path": "../../../V1.7 测试/测试数据/11260/customFit_cashflow.json",
+      "success": true
+    }
+  }
+}

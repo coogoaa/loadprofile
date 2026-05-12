@@ -55,6 +55,36 @@ def build_generation_matrix(panels):
 
 
 # ────────────────────────────────────────────────
+# 既有 PV 简化计算：容量 × 兜底年发电系数
+# ────────────────────────────────────────────────
+def build_existing_pv_matrix(existing_kwp, state):
+    """
+    既有 PV 简化计算：
+    - 年发电量 = existing_kwp × STATE_YIELD[state]
+    - 按月度发电占比 DE_GEN_MONTHLY 拆分到月
+    - 按小时占比 DE_HOURLY 拆分到小时
+    返回 (gen[12][24], annual_total)
+    """
+    if existing_kwp <= 0:
+        return [[0.0]*24 for _ in range(12)], 0.0
+
+    # 获取州年发电系数
+    yield_coeff = P.STATE_YIELD.get(state, 1000)  # 默认 1000 kWh/kWp
+    annual_total = existing_kwp * yield_coeff
+
+    # 按月度占比拆分
+    gen = [[0.0]*24 for _ in range(12)]
+    for m in range(12):
+        monthly_gen = annual_total * P.DE_GEN_MONTHLY[m]
+        # 按小时占比拆分到日
+        daily_gen = monthly_gen / P.DAYS_IN_MONTH[m]
+        for h in range(24):
+            gen[m][h] = daily_gen * P.DE_HOURLY[h]
+
+    return gen, annual_total
+
+
+# ────────────────────────────────────────────────
 # 用电矩阵：从 LoadProfile 推 12×24
 # ────────────────────────────────────────────────
 def build_load_matrix(lp):
@@ -149,6 +179,7 @@ def simulate_battery(gen, load, bat_capacity_kwh):
             'direct': m_direct, 'discharge': m_disch, 'charge': m_charge,
             'export': m_exp, 'import': m_imp,
             'self_use': m_direct + m_disch,
+            'SCR_month': (m_direct + m_disch) / m_gen if m_gen > 0 else 0,
         })
 
     return {
@@ -166,7 +197,7 @@ def simulate_battery(gen, load, bat_capacity_kwh):
 # ────────────────────────────────────────────────
 # 报告
 # ────────────────────────────────────────────────
-def render_report(case, mode, sc, lp, gen, load, sim):
+def render_report(case, mode, sc, lp, gen, load, sim, gen_info):
     lines = []
     add = lines.append
     tier = sc.get('tier', case.get('tier', 'unknown'))
@@ -189,10 +220,18 @@ def render_report(case, mode, sc, lp, gen, load, sim):
     add('')
     add('| 项 | 值 |')
     add('|---|---|')
-    add(f'| 选中面板 | {actual_panels} 块 ({actual_pv:.2f} kWp) |')
+    if mode == 'R' and gen_info['existing_kwp'] > 0:
+        add(f'| 既有 PV | {gen_info["existing_kwp"]:.2f} kWp |')
+        add(f'| 既有 PV 年发电 | {gen_info["existing_gen_total"]:,.1f} kWh（简化计算：容量 × 兜底年发电系数） |')
+        add(f'| 新增 PV 面板 | {gen_info["added_panels"]} 块 |')
+        add(f'| 新增 PV 年发电 | {gen_info["added_gen_total"]:,.1f} kWh（选板计算） |')
+        add(f'| 总 PV 容量 | {actual_pv:.2f} kWp |')
+        add(f'| 总年发电 | {gen_info["total_gen_total"]:,.1f} kWh |')
+    else:
+        add(f'| 选中面板 | {actual_panels} 块 ({actual_pv:.2f} kWp) |')
+        add(f'| 年发电（选板合计） | {gen_info["total_gen_total"]:,.1f} kWh |')
     add(f'| 电池容量 | {bat_kwh} kWh（usable={sim["usable_capacity"]:.2f} kWh, DoD={P.BATT_DOD}, RTE={P.BATT_RTE}） |')
     add(f'| 年用电 final | {lp["totals"]["final"]:,.1f} kWh |')
-    add(f'| 年发电（选板合计） | {sim["gen_total"]:,.1f} kWh |')
     add('')
 
     # 2. 发电矩阵
@@ -236,15 +275,15 @@ def render_report(case, mode, sc, lp, gen, load, sim):
     # 5. 月度汇总
     add('## 5. 月度汇总')
     add('')
-    add('| 月 | 发电 | 用电 | 直接消纳 | 电池放电 | 馈网 | 购电 | 自用合计 |')
-    add('|---|---|---|---|---|---|---|---|')
+    add('| 月 | 发电 | 用电 | 直接消纳 | 电池放电 | 馈网 | 购电 | 自用合计 | 月自用率 |')
+    add('|---|---|---|---|---|---|---|---|---|')
     for r in sim['monthly']:
         add(f'| {P.MONTH_ZH[r["month"]-1]} | {r["gen_kwh"]:,.1f} | {r["load_kwh"]:,.1f} | '
             f'{r["direct"]:,.1f} | {r["discharge"]:,.1f} | {r["export"]:,.1f} | '
-            f'{r["import"]:,.1f} | {r["self_use"]:,.1f} |')
+            f'{r["import"]:,.1f} | {r["self_use"]:,.1f} | {r["SCR_month"]*100:.1f}% |')
     add(f'| **合计** | **{sim["gen_total"]:,.1f}** | **{sim["load_total"]:,.1f}** | '
         f'**{sim["direct"]:,.1f}** | **{sim["discharge"]:,.1f}** | **{sim["export"]:,.1f}** | '
-        f'**{sim["import_grid"]:,.1f}** | **{sim["self_use"]:,.1f}** |')
+        f'**{sim["import_grid"]:,.1f}** | **{sim["self_use"]:,.1f}** | **{sim["SCR"]*100:.1f}%** |')
     add('')
 
     # 6. 关键指标
@@ -302,6 +341,8 @@ def process_case(case, data_dir, output_dir):
 
             n_select = sc['actual_panels'] if mode == 'R' else sc['n']['actual_panels']
             bat_kwh = sc['rh']['bat_kWh'] if mode == 'R' else sc['n']['bat_kWh']
+            state = sc['inputs']['state']
+
             # 选板（按年发电量降序）
             sorted_panels = sorted(
                 panels_all,
@@ -310,7 +351,35 @@ def process_case(case, data_dir, output_dir):
             )
             chosen = sorted_panels[:n_select] if n_select > 0 else []
 
-            gen, _ = build_generation_matrix(chosen)
+            # 区分既有 PV 和新增 PV（仅 R 模式）
+            if mode == 'R':
+                existing_kwp = sc['rh']['existing']
+                added_panels_count = sc['rh']['added_panels']
+                # 既有 PV 使用简化计算
+                gen_existing, gen_existing_total = build_existing_pv_matrix(existing_kwp, state)
+                # 新增 PV 使用选板计算
+                added_chosen = chosen[:added_panels_count] if added_panels_count > 0 else []
+                gen_added, gen_added_total = build_generation_matrix(added_chosen)
+                # 叠加总发电
+                gen = [[gen_existing[m][h] + gen_added[m][h] for h in range(24)] for m in range(12)]
+                gen_total = gen_existing_total + gen_added_total
+                gen_info = {
+                    'existing_kwp': existing_kwp,
+                    'existing_gen_total': gen_existing_total,
+                    'added_panels': added_panels_count,
+                    'added_gen_total': gen_added_total,
+                    'total_gen_total': gen_total,
+                }
+            else:
+                gen, gen_total = build_generation_matrix(chosen)
+                gen_info = {
+                    'existing_kwp': 0,
+                    'existing_gen_total': 0,
+                    'added_panels': n_select,
+                    'added_gen_total': gen_total,
+                    'total_gen_total': gen_total,
+                }
+
             load, h_share = build_load_matrix(lp)
             sim = simulate_battery(gen, load, bat_kwh)
 
@@ -318,6 +387,7 @@ def process_case(case, data_dir, output_dir):
                 'case_id': case_id, 'mode': mode, 'tier': tier,
                 'selected_panels': n_select,
                 'bat_kwh': bat_kwh,
+                'gen_info': gen_info,
                 'totals': {
                     'gen_total': sim['gen_total'],
                     'load_total': sim['load_total'],
@@ -337,7 +407,7 @@ def process_case(case, data_dir, output_dir):
             (sub / '03_energy_flow.json').write_text(
                 json.dumps(out, ensure_ascii=False, indent=2), encoding='utf-8')
             (sub / '03_energy_flow.md').write_text(
-                render_report(case, mode, sc, lp, gen, load, sim), encoding='utf-8')
+                render_report(case, mode, sc, lp, gen, load, sim, gen_info), encoding='utf-8')
             print(f'  ✓ [{case_id}/{mode}/{tier}] gen={sim["gen_total"]:,.0f} load={sim["load_total"]:,.0f} '
                   f'SCR={sim["SCR"]*100:.1f}% SSR={sim["SSR"]*100:.1f}% '
                   f'import={sim["import_grid"]:,.0f} export={sim["export"]:,.0f}')

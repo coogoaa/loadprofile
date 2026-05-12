@@ -1,0 +1,54 @@
+{
+  "case_id": "11176",
+  "mode": "N",
+  "tier": "C",
+  "inputs": {
+    "state": "BY",
+    "hvac": "no_system",
+    "ev_km": 0,
+    "sam3d_kwp": 39.48,
+    "sam3d_src": "auto_from_panel_location",
+    "mask2d_m2": 299.00600610184483
+  },
+  "n": {
+    "trigger": false,
+    "tier": "C",
+    "ratio": 1.2,
+    "target_pv_total": 13.16,
+    "target_pv_capped": 13.16,
+    "sam3d": 39.48,
+    "mask2d": 299.00600610184483,
+    "roof_capped": 13.16,
+    "roof_limited": false,
+    "panels_floor": 28,
+    "panels": 28,
+    "pv_pre": 13.16,
+    "inv": {
+      "specs": [
+        5,
+        6,
+        8,
+        10,
+        12,
+        15,
+        18,
+        20,
+        22
+      ],
+      "target_kw": 10.123076923076923,
+      "inv_kw": 12,
+      "scr": 1.0966666666666667,
+      "scr_pct": 109.66666666666667,
+      "action": "ok",
+      "curtailed": false,
+      "curtail_panels": null,
+      "final_pv": 13.16
+    },
+    "actual_pv": 13.16,
+    "actual_panels": 28,
+    "bat_target": 15.792,
+    "bat_kWh": 16
+  },
+  "selected_panels_count": 28,
+  "selected_panels_annual_kwh": 13406.129107701887
+}
