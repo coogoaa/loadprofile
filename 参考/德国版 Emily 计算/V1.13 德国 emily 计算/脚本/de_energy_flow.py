@@ -197,7 +197,7 @@ def simulate_battery(gen, load, bat_capacity_kwh):
 # ────────────────────────────────────────────────
 # 报告
 # ────────────────────────────────────────────────
-def render_report(case, mode, sc, lp, gen, load, sim, gen_info):
+def render_report(case, mode, sc, lp, gen, load, sim, gen_info, gen_existing=None, gen_added=None):
     lines = []
     add = lines.append
     tier = sc.get('tier', case.get('tier', 'unknown'))
@@ -235,14 +235,81 @@ def render_report(case, mode, sc, lp, gen, load, sim, gen_info):
     add('')
 
     # 2. 发电矩阵
-    add('## 2. 发电矩阵 gen[m][h]（kWh/小时，典型日）')
-    add('')
-    add('| 月\\h | ' + ' | '.join(f'{h:02d}' for h in range(24)) + ' | 日合 |')
-    add('|---' * 26 + '|')
-    for m in range(12):
-        row = ' | '.join(f'{gen[m][h]:.2f}' for h in range(24))
-        add(f'| {P.MONTH_ZH[m]} | {row} | **{sum(gen[m]):.2f}** |')
-    add('')
+    if mode == 'R' and gen_existing and gen_added:
+        # 2.1 既有 PV 发电矩阵（简化计算）
+        add('## 2.1 既有 PV 发电矩阵（简化计算）')
+        add('')
+        add('### 计算过程')
+        add('')
+        add('既有 PV 使用简化计算公式：')
+        add('```')
+        add('年发电量 = 既有 PV 容量 (kWp) × 州年发电系数 (kWh/kWp)')
+        add(f'年发电量 = {gen_info["existing_kwp"]:.2f} kWp × {P.STATE_YIELD.get(sc["inputs"]["state"], 1000):.0f} kWh/kWp = {gen_info["existing_gen_total"]:,.1f} kWh')
+        add('```')
+        add('月度拆分：按 DE_GEN_MONTHLY 比例分配')
+        add('小时拆分：按 DE_HOURLY 比例分配到每日小时')
+        add('')
+        add('### 发电矩阵（kWh/小时，典型日）')
+        add('')
+        add('| 月\\h | ' + ' | '.join(f'{h:02d}' for h in range(24)) + ' | 日合 |')
+        add('|---' * 26 + '|')
+        for m in range(12):
+            row = ' | '.join(f'{gen_existing[m][h]:.2f}' for h in range(24))
+            add(f'| {P.MONTH_ZH[m]} | {row} | **{sum(gen_existing[m]):.2f}** |')
+        add('')
+
+        # 2.2 新增 PV 发电矩阵
+        add('## 2.2 新增 PV 发电矩阵（选板计算）')
+        add('')
+        add('### 计算过程')
+        add('')
+        add('新增 PV 使用选板计算公式：')
+        add('```')
+        add('gen[m][h] = Σ_selected_panel.monthlyHourlyPowerList[m][h]')
+        add(f'选中面板数 = {gen_info["added_panels"]} 块')
+        add(f'年发电量 = {gen_info["added_gen_total"]:,.1f} kWh（从面板的 monthlyHourlyPowerList 累加）')
+        add('```')
+        add('选板过程：按年发电量降序排序，取前 N 块')
+        add('')
+        add('### 发电矩阵（kWh/小时，典型日）')
+        add('')
+        add('| 月\\h | ' + ' | '.join(f'{h:02d}' for h in range(24)) + ' | 日合 |')
+        add('|---' * 26 + '|')
+        for m in range(12):
+            row = ' | '.join(f'{gen_added[m][h]:.2f}' for h in range(24))
+            add(f'| {P.MONTH_ZH[m]} | {row} | **{sum(gen_added[m]):.2f}** |')
+        add('')
+
+        # 2.3 总发电矩阵
+        add('## 2.3 总发电矩阵（既有 + 新增）')
+        add('')
+        add('### 合并过程')
+        add('')
+        add('```')
+        add('gen_total[m][h] = gen_existing[m][h] + gen_added[m][h]')
+        add(f'既有 PV 年发电 = {gen_info["existing_gen_total"]:,.1f} kWh')
+        add(f'新增 PV 年发电 = {gen_info["added_gen_total"]:,.1f} kWh')
+        add(f'总年发电 = {gen_info["existing_gen_total"] + gen_info["added_gen_total"]:,.1f} kWh')
+        add('```')
+        add('')
+        add('### 发电矩阵（kWh/小时，典型日）')
+        add('')
+        add('| 月\\h | ' + ' | '.join(f'{h:02d}' for h in range(24)) + ' | 日合 |')
+        add('|---' * 26 + '|')
+        for m in range(12):
+            row = ' | '.join(f'{gen[m][h]:.2f}' for h in range(24))
+            add(f'| {P.MONTH_ZH[m]} | {row} | **{sum(gen[m]):.2f}** |')
+        add('')
+    else:
+        # 2. 发电矩阵（N 模式）
+        add('## 2. 发电矩阵 gen[m][h]（kWh/小时，典型日）')
+        add('')
+        add('| 月\\h | ' + ' | '.join(f'{h:02d}' for h in range(24)) + ' | 日合 |')
+        add('|---' * 26 + '|')
+        for m in range(12):
+            row = ' | '.join(f'{gen[m][h]:.2f}' for h in range(24))
+            add(f'| {P.MONTH_ZH[m]} | {row} | **{sum(gen[m]):.2f}** |')
+        add('')
 
     # 3. 用电矩阵
     add('## 3. 用电矩阵 load[m][h]（kWh/小时，典型日）')
@@ -401,13 +468,17 @@ def process_case(case, data_dir, output_dir):
                 },
                 'monthly': sim['monthly'],
                 'matrix_gen': gen,
+                'matrix_gen_existing': gen_existing if mode == 'R' else None,
+                'matrix_gen_added': gen_added if mode == 'R' else None,
                 'matrix_load': load,
                 'hour_share': h_share,
             }
             (sub / '03_energy_flow.json').write_text(
                 json.dumps(out, ensure_ascii=False, indent=2), encoding='utf-8')
             (sub / '03_energy_flow.md').write_text(
-                render_report(case, mode, sc, lp, gen, load, sim, gen_info), encoding='utf-8')
+                render_report(case, mode, sc, lp, gen, load, sim, gen_info, 
+                             gen_existing if mode == 'R' else None, 
+                             gen_added if mode == 'R' else None), encoding='utf-8')
             print(f'  ✓ [{case_id}/{mode}/{tier}] gen={sim["gen_total"]:,.0f} load={sim["load_total"]:,.0f} '
                   f'SCR={sim["SCR"]*100:.1f}% SSR={sim["SSR"]*100:.1f}% '
                   f'import={sim["import_grid"]:,.0f} export={sim["export"]:,.0f}')
