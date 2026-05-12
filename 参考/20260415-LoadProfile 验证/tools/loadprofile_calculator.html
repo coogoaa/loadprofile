@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LoadProfile Calculator · AU</title>
+<style>
+:root{
+  --bg:#080d14;--sur:#0d1320;--sur2:#121a27;--bor:#1b2a3b;--bor2:#233044;
+  --tx:#c5cdd8;--dim:#5e7285;--mute:#344252;
+  --ac:#00c8e8;--ac2:#007fa0;--blue:#6db8ff;--grn:#3dba52;
+  --yel:#d09422;--red:#e84040;--ora:#e07035;
+  --mono:"JetBrains Mono","Fira Code","Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--tx);font:13px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+header{height:48px;background:var(--sur);border-bottom:1px solid var(--bor);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.hlogo{font-size:15px;font-weight:700;color:var(--ac);letter-spacing:.06em;}
+.hsub{color:var(--dim);font-size:11px;}
+.hpill{margin-left:auto;background:var(--ac2);color:#fff;font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;}
+.layout{display:grid;grid-template-columns:272px 1fr;height:calc(100vh - 48px);overflow:hidden;}
+aside{background:var(--sur);border-right:1px solid var(--bor);overflow-y:auto;padding:14px 16px;}
+.slabel{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bor);}
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--dim);margin-bottom:4px;}
+.qb{display:inline-block;background:var(--ac2);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-right:3px;}
+select{width:100%;background:var(--sur2);border:1px solid var(--bor2);color:var(--tx);padding:6px 10px;border-radius:5px;font-size:12px;outline:none;appearance:none;cursor:pointer;transition:border-color .15s;}
+select:focus{border-color:var(--ac);}
+.field.hidden{display:none;}
+.note{background:var(--sur2);border:1px solid var(--bor);border-left:3px solid var(--ac);border-radius:4px;padding:7px 10px;font-size:11px;color:var(--dim);margin-top:8px;}
+main{overflow-y:auto;padding:18px 22px;background:var(--bg);}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:18px;}
+.card{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:11px 13px;}
+.card.hi{border-color:var(--ac2);}
+.cl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;}
+.cv{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--ac);}
+.cu{font-size:11px;color:var(--dim);}
+.sblock{background:var(--sur);border:1px solid var(--bor);border-radius:6px;margin-bottom:11px;overflow:hidden;}
+.shdr{display:flex;align-items:center;gap:9px;padding:11px 15px;cursor:pointer;user-select:none;border-bottom:1px solid transparent;transition:background .12s;}
+.shdr:hover{background:var(--sur2);}
+.shdr.open{border-bottom-color:var(--bor);}
+.snum{background:var(--ac2);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.04em;}
+.stit{font-size:13px;font-weight:600;flex:1;}
+.sbadge{font-family:var(--mono);font-size:11px;color:var(--blue);}
+.chev{color:var(--dim);font-size:10px;transition:transform .18s;}
+.chev.open{transform:rotate(90deg);}
+.sbody{padding:15px;display:none;}
+.sbody.open{display:block;}
+.ssec{margin-bottom:15px;}
+.sstit{font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;display:flex;align-items:center;gap:6px;}
+.sstit::after{content:'';flex:1;height:1px;background:var(--bor);}
+.fml{background:var(--sur2);border:1px solid var(--bor);border-radius:4px;padding:9px 13px;font-family:var(--mono);font-size:11.5px;color:var(--blue);margin:7px 0;white-space:pre;overflow-x:auto;}
+.fml .r{color:var(--ac);font-weight:700;}
+.fml .c{color:var(--dim);}
+.tw{overflow-x:auto;margin:7px 0;}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;}
+th{background:var(--sur2);color:var(--dim);padding:4px 9px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--bor);white-space:nowrap;}
+th:first-child{text-align:left;}
+td{padding:3px 9px;text-align:right;border-bottom:1px solid var(--bor);color:var(--tx);}
+td:first-child{text-align:left;color:var(--dim);}
+tr:last-child td{border-bottom:none;font-weight:700;color:var(--blue);}
+tr.cool{background:rgba(0,200,232,.04);}
+tr.heat{background:rgba(230,90,40,.04);}
+tr.both{background:rgba(176,126,248,.06);}
+.tag{color:var(--ac);font-size:10px;}
+.brow{display:flex;align-items:center;gap:7px;height:18px;margin-bottom:2px;}
+.blbl{width:28px;font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;flex-shrink:0;}
+.btrk{flex:1;background:var(--sur2);border-radius:2px;height:10px;overflow:hidden;}
+.bfil{height:100%;border-radius:2px;background:var(--ac2);transition:width .35s ease;}
+.bfil.d{background:var(--yel);}
+.bfil.p{background:var(--ora);}
+.bfil.e{background:var(--grn);}
+.bval{width:48px;font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;flex-shrink:0;}
+.mchart{display:flex;align-items:flex-end;gap:2px;height:56px;margin:8px 0 2px;}
+.mbar{flex:1;background:var(--ac2);border-radius:2px 2px 0 0;cursor:default;transition:height .35s ease;}
+.mbar:hover{opacity:.8;}
+.mbar.cool{background:#0088aa;}
+.mbar.heat{background:#8b2e1a;}
+.mbar.both{background:#8050b8;}
+.mlbls{display:flex;gap:2px;margin-bottom:6px;}
+.mlbls span{flex:1;text-align:center;font-size:9px;color:var(--mute);}
+.ogrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin-top:11px;}
+.ocard{background:var(--sur2);border:1px solid var(--bor);border-radius:6px;padding:13px;}
+.ocl{font-size:11px;color:var(--dim);margin-bottom:3px;}
+.ocv{font-family:var(--mono);font-size:21px;font-weight:700;color:var(--ac);}
+.ock{font-size:11px;color:var(--dim);}
+.ocd{font-size:10px;font-family:var(--mono);margin-top:3px;}
+.ocd.pos{color:var(--grn);}
+.ocd.neg{color:var(--red);}
+.ver{font-size:11px;color:var(--grn);font-family:var(--mono);margin-top:7px;}
+.legend{font-size:10px;color:var(--dim);line-height:2;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--bor2);border-radius:3px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="hlogo">⚡ LoadProfile Calculator</div>
+  <div class="hsub">AU · SalesAgent V1.12 § 3.1</div>
+  <div class="hpill">LIVE</div>
+</header>
+<div class="layout">
+<aside>
+  <div class="slabel">Inputs</div>
+  <div class="field">
+    <label>State / Territory</label>
+    <select id="s-state">
+      <option value="NSW">NSW — New South Wales</option>
+      <option value="VIC">VIC — Victoria</option>
+      <option value="QLD">QLD — Queensland</option>
+      <option value="SA">SA — South Australia</option>
+      <option value="WA">WA — Western Australia</option>
+      <option value="TAS">TAS — Tasmania</option>
+      <option value="ACT">ACT — Canberra</option>
+      <option value="NT">NT — Northern Territory</option>
+    </select>
+  </div>
+  <div class="field">
+    <label><span class="qb">Q1</span> Home pattern</label>
+    <select id="s-q1">
+      <option value="Mostly away during the day">Mostly away during the day</option>
+      <option value="Working from home">Working from home</option>
+      <option value="Someone always at home">Someone always at home</option>
+      <option value="No modification (default/skip)">Skip (default)</option>
+    </select>
+  </div>
+  <div class="field">
+    <label><span class="qb">Q2</span> Heating &amp; cooling system</label>
+    <select id="s-q2">
+      <option value="Heat pump (heating &amp; cooling)">Heat pump (heating &amp; cooling)</option>
+      <option value="Air conditioning">Air conditioning</option>
+      <option value="Electric heating">Electric heating</option>
+      <option value="No heating or cooling system">No system</option>
+    </select>
+  </div>
+  <div class="field" id="f-q3">
+    <label><span class="qb">Q3</span> Usage intensity</label>
+    <select id="s-q3">
+      <option value="Low">Low</option>
+      <option value="Medium" selected>Medium</option>
+      <option value="High">High</option>
+      <option value="Very high">Very high</option>
+    </select>
+  </div>
+  <div class="field">
+    <label><span class="qb">Q4</span> Annual EV distance</label>
+    <select id="s-q4">
+      <option value="0">No electric vehicle</option>
+      <option value="5000">5,000 km</option>
+      <option value="10000">10,000 km</option>
+      <option value="15000">15,000 km</option>
+      <option value="20000">20,000 km</option>
+      <option value="25000">25,000+ km</option>
+    </select>
+  </div>
+  <div class="field hidden" id="f-q5">
+    <label><span class="qb">Q5</span> EV charging time</label>
+    <select id="s-q5">
+      <option value="mostly_overnight">Mostly overnight</option>
+      <option value="mixed_day_and_night">Mixed day and night</option>
+      <option value="mostly_daytime">Mostly daytime</option>
+      <option value="solar_optimized">Solar-optimized</option>
+    </select>
+  </div>
+  <div class="note">Results update live on any change.</div>
+</aside>
+<main id="out"></main>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const BASE={TAS:10148,NT:10008,ACT:8632,SA:7129,NSW:7778,QLD:7270,WA:7634,VIC:6778};
+const DMS=[.08548,.07781,.07507,.07137,.08466,.10548,.10671,.09452,.07356,.07205,.07301,.08027];
+const MS={TAS:DMS,NT:DMS,ACT:DMS,SA:DMS,NSW:DMS,WA:DMS,VIC:DMS,
+  QLD:[.09274,.09219,.08685,.08137,.07904,.08233,.08192,.07932,.07603,.07671,.08192,.08959]};
+const SF={
+  NSW:{c:[1,1,1,0,0,0,0,0,0,0,0,1],h:[0,0,0,0,0,1,1,1,0,0,0,0]},
+  VIC:{c:[1,1,1,0,0,0,0,0,0,0,0,1],h:[0,0,0,0,0,1,1,1,0,0,0,0]},
+  SA: {c:[1,1,1,0,0,0,0,0,0,0,0,1],h:[0,0,0,0,0,1,1,1,0,0,0,0]},
+  WA: {c:[1,1,1,0,0,0,0,0,0,0,0,1],h:[0,0,0,0,0,1,1,1,0,0,0,0]},
+  QLD:{c:[1,1,1,1,0,0,0,0,0,1,1,1],h:[0,0,0,0,0,1,1,0,0,0,0,0]},
+  NT: {c:[1,1,1,1,0,0,0,0,1,1,1,1],h:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  TAS:{c:[1,1,0,0,0,0,0,0,0,0,0,0],h:[0,0,0,0,1,1,1,1,1,0,0,0]},
+  ACT:{c:[1,1,0,0,0,0,0,0,0,0,0,1],h:[0,0,0,0,1,1,1,1,1,0,0,0]}
+};
+const HS={
+  NSW:[.03064,.02581,.02423,.02387,.02436,.01515,.03026,.03884,.04702,.04943,.04696,.04324,.04225,.04097,.04096,.04659,.02914,.07738,.07603,.07241,.06386,.05292,.02597,.03171],
+  VIC:[.04359,.04287,.03720,.03316,.03057,.02179,.02877,.03377,.04054,.04376,.04411,.03955,.03913,.04332,.04336,.04456,.04753,.04825,.06249,.05873,.05539,.04934,.03438,.03386],
+  NT: [.03553,.03121,.02979,.03022,.03100,.01618,.03797,.04589,.05069,.04864,.04507,.04193,.04116,.03923,.03865,.03964,.04538,.05213,.06597,.06272,.05672,.05038,.03505,.02885],
+  SA: [.02646,.02376,.02571,.02586,.02528,.01328,.02976,.03348,.04133,.04835,.05176,.05001,.04887,.04651,.04472,.04400,.04749,.03175,.07385,.07381,.07058,.06291,.04785,.01262],
+  TAS:[.04063,.04161,.03597,.03184,.02927,.01430,.02940,.03116,.03623,.04123,.04455,.02259,.04536,.04598,.04641,.04623,.04835,.04084,.06204,.06156,.05958,.05581,.04814,.04090],
+  ACT:[.03524,.03000,.02741,.02606,.02578,.02653,.01421,.03290,.04192,.04910,.05293,.05154,.05151,.04769,.04675,.04723,.05213,.05987,.05958,.05601,.05198,.04835,.04486,.02044]
+};
+HS.QLD=HS.NT; HS.WA=HS.SA;
+const HVAC={"No heating or cooling system":0,"Air conditioning":0,"Electric heating":2500,"Heat pump (heating & cooling)":1800};
+const UC={Low:{am:.7,cmm:1.05,hmm:1.08,cpm:1.10,hpm:1.08},Medium:{am:1.0,cmm:1.10,hmm:1.15,cpm:1.20,hpm:1.15},High:{am:1.3,cmm:1.20,hmm:1.25,cpm:1.35,hpm:1.25},"Very high":{am:1.6,cmm:1.35,hmm:1.40,cpm:1.50,hpm:1.40}};
+const OCC={"No modification (default/skip)":1.0,"Mostly away during the day":.6,"Working from home":1.4,"Someone always at home":1.2};
+const EVP={
+  mostly_overnight:   [.125,.125,.125,.125,.125,.125,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,.125,.125],
+  mixed_day_and_night:[.075,.075,.075,.075,.075,.075,0,0,0,0,.067,.067,.067,.067,.067,.067,0,0,0,0,0,0,.075,.075],
+  mostly_daytime:     [0,0,0,0,0,0,0,0,0,0,.167,.167,.167,.167,.167,.167,0,0,0,0,0,0,0,0],
+  solar_optimized:    [.025,.025,.025,.025,.025,.025,0,0,0,.04,.072,.104,.128,.136,.128,.104,.088,0,0,0,0,0,.025,.025]
+};
+const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const COOL_SYS=new Set(["Air conditioning","Heat pump (heating & cooling)"]);
+const HEAT_SYS=new Set(["Electric heating","Heat pump (heating & cooling)"]);
+const CPH=new Set([14,15,16,17,18]),HPH=new Set([6,7,8,18,19,20,21]),DTH=new Set([7,8,9,10,11,12,13,14,15,16]);
+
+// ── Calc ──────────────────────────────────────────────────────────────────────
+function calc(state,system,usage,miles,occ,evc){
+  const base=BASE[state],u=UC[usage]||UC.Medium,sf=SF[state],bms=MS[state],hb=HS[state];
+  const ev_dist=EVP[evc]||EVP.mostly_overnight,occ_v=OCC[occ]||1.0,t_base=HVAC[system]||0;
+  const pc=COOL_SYS.has(system),ph=HEAT_SYS.has(system);
+  const t_ext=t_base*u.am,ev_ext=miles*.18,final=base+t_ext+ev_ext;
+  const sm=MN.map((_,i)=>1+(pc&&sf.c[i]?(u.cmm-1):0)+(ph&&sf.h[i]?(u.hmm-1):0));
+  const rb=MN.map((_,i)=>base*bms[i]*sm[i]);
+  const srb=rb.reduce((a,b)=>a+b,0);
+  const nb=rb.map(v=>v/srb*base);
+  const tw=MN.map((_,i)=>(pc&&sf.c[i]?bms[i]*u.cmm:0)+(ph&&sf.h[i]?bms[i]*u.hmm:0));
+  const stw=tw.reduce((a,b)=>a+b,0);
+  const ta=tw.map(w=>stw>0?w/stw*t_ext:0),evm=ev_ext/12,ea=MN.map(()=>evm);
+  const fkm=MN.map((_,i)=>nb[i]+ta[i]+ea[i]),fsm=fkm.map(v=>v/final);
+  const om=Array.from({length:24},(_,h)=>DTH.has(h)?occ_v:1.0);
+  const pm=Array.from({length:24},(_,h)=>(pc&&CPH.has(h)?u.cpm:1)*(ph&&HPH.has(h)?u.hpm:1));
+  const adj=Array.from({length:24},(_,h)=>hb[h]*om[h]*pm[h]);
+  const sadj=adj.reduce((a,b)=>a+b,0),ns=adj.map(v=>v/sadj);
+  const dne=(base+t_ext)/365,dev=ev_ext/365;
+  const nek=ns.map(v=>dne*v),evk=ev_dist.map(v=>dev*v);
+  const fkd=Array.from({length:24},(_,h)=>nek[h]+evk[h]);
+  const davg=final/365,fhs=fkd.map(v=>v/davg);
+  const DTH_A=[7,8,9,10,11,12,13,14,15,16],EPH=[17,18,19,20],ONH=[17,18,19,20,21,22,23,0,1,2,3,4,5,6];
+  const dtk=DTH_A.reduce((a,h)=>a+fkd[h],0),epk=EPH.reduce((a,h)=>a+fkd[h],0),onk=ONH.reduce((a,h)=>a+fkd[h],0);
+  return{state,system,usage,miles,occ,evc,base,t_base,t_ext,ev_ext,final,u,pc,ph,sf,bms,hb,ev_dist,occ_v,
+    sm,rb,srb,nb,ta,ea,fkm,fsm,om,pm,adj,sadj,ns,nek,evk,fkd,davg,dne,dev,fhs,
+    dtk,dtp:dtk/davg*100,epk,epp:epk/davg*100,onk,onp:onk/davg*100};
+}
+
+// ── Format ────────────────────────────────────────────────────────────────────
+const f2=(v,d=2)=>v.toLocaleString('en-AU',{minimumFractionDigits:d,maximumFractionDigits:d});
+const f0=v=>Math.round(v).toLocaleString('en-AU');
+const fp=v=>v.toFixed(2)+'%';
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const sgn=v=>(v>=0?'+':'')+v.toFixed(2);
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(r){
+  const maxFkd=Math.max(...r.fkd),maxFkm=Math.max(...r.fkm);
+
+  // Summary
+  let h=`<div class="cards">
+    <div class="card hi"><div class="cl">Annual kWh</div><div class="cv">${f0(r.final)}</div><div class="cu">kWh/year</div></div>
+    <div class="card"><div class="cl">Daily Avg</div><div class="cv">${f2(r.davg,1)}</div><div class="cu">kWh/day</div></div>
+    <div class="card"><div class="cl">Daytime H07–16</div><div class="cv">${fp(r.dtp)}</div><div class="cu">${f2(r.dtk)} kWh/day</div></div>
+    <div class="card"><div class="cl">Evening Peak H17–20</div><div class="cv">${fp(r.epp)}</div><div class="cu">${f2(r.epk)} kWh/day</div></div>
+    <div class="card"><div class="cl">Overnight H17–06</div><div class="cv">${fp(r.onp)}</div><div class="cu">${f2(r.onk)} kWh/day</div></div>
+  </div>`;
+
+  // Step 1
+  h+=blk('1','Step 1 — Annual kWh',`${f0(r.final)} kWh`,`
+  <div class="ssec"><div class="sstit">1-A  Thermal Extra</div>
+  <div class="fml">Thermal_Extra = BaseThermalLoad[${esc(r.system)}] × UsageMult[${r.usage}]
+            = ${f0(r.t_base)} kWh  ×  ${r.u.am.toFixed(3)}
+<span class="r">            = ${f2(r.t_ext)} kWh</span></div></div>
+  <div class="ssec"><div class="sstit">1-B  EV Extra</div>
+  <div class="fml">EV_Extra = ${r.miles.toLocaleString()} km × 0.18 kWh/km
+<span class="r">         = ${f2(r.ev_ext)} kWh</span></div></div>
+  <div class="ssec"><div class="sstit">1-C  Final Annual</div>
+  <div class="fml">Final_Annual = Base_Annual(${r.state}) + Thermal_Extra + EV_Extra
+            = ${f0(r.base)} + ${f2(r.t_ext)} + ${f2(r.ev_ext)}
+<span class="r">            = ${f2(r.final)} kWh</span></div>
+  <table style="max-width:300px"><tr><th>Item</th><th>kWh</th></tr>
+    <tr><td>Base_Annual (${r.state})</td><td>${f2(r.base)}</td></tr>
+    <tr><td>Thermal_Extra</td><td>${f2(r.t_ext)}</td></tr>
+    <tr><td>EV_Extra</td><td>${f2(r.ev_ext)}</td></tr>
+    <tr><td>Final_Annual</td><td>${f2(r.final)}</td></tr>
+  </table></div>`);
+
+  // Step 2
+  const mbars=r.fkm.map((v,i)=>{
+    const ht=Math.round(v/maxFkm*52);
+    let cls=(r.sf.c[i]&&r.pc&&r.sf.h[i]&&r.ph)?'both':(r.sf.c[i]&&r.pc)?'cool':(r.sf.h[i]&&r.ph)?'heat':'';
+    return `<div class="mbar ${cls}" style="height:${ht}px" title="${MN[i]}: ${f2(v)} kWh"></div>`;
+  }).join('');
+  const mlbl=MN.map(m=>`<span>${m[0]}</span>`).join('');
+  const mrows=MN.map((m,i)=>{
+    const cls=(r.sf.c[i]&&r.pc&&r.sf.h[i]&&r.ph)?'both':(r.sf.c[i]&&r.pc)?'cool':(r.sf.h[i]&&r.ph)?'heat':'';
+    const tag=(r.sf.c[i]&&r.pc?'❄':'')+(r.sf.h[i]&&r.ph?'🔥':'');
+    return `<tr class="${cls}"><td>${m}</td><td>${r.bms[i].toFixed(5)}</td><td>${r.sm[i].toFixed(3)}</td><td>${f2(r.rb[i])}</td><td>${f2(r.nb[i])}</td><td>${f2(r.ta[i])}</td><td>${f2(r.ea[i])}</td><td><b>${f2(r.fkm[i])}</b></td><td>${fp(r.fsm[i]*100)}</td><td class="tag">${tag}</td></tr>`;
+  }).join('');
+  h+=blk('2','Step 2 — Monthly Distribution','',`
+  <div class="ssec"><div class="sstit">Formula</div>
+  <div class="fml">SeasonalMult[m] = 1 + IF(pc∧CoolFlag,CoolMonthMult−1,0) + IF(ph∧HeatFlag,HeatMonthMult−1,0)
+ReshapedBase[m] = Base × MonthlyShare[m] × SeasonalMult[m]
+NormBase[m]     = Reshaped[m] / SUM(Reshaped) × Base
+ThermalAlloc[m] = ThermalWeight[m] / SUM(Weight) × Thermal_Extra
+FinalKWh[m]     = NormBase + ThermalAlloc + EV_Extra/12</div>
+  <div style="display:flex;gap:14px;align-items:flex-end">
+    <div style="flex:1"><div class="mchart">${mbars}</div><div class="mlbls">${mlbl}</div></div>
+    <div class="legend"><span style="color:#0088aa">■</span> Cool<br><span style="color:#8b2e1a">■</span> Heat<br><span style="color:#8050b8">■</span> Both</div>
+  </div></div>
+  <div class="ssec"><div class="sstit">Full Monthly Table</div>
+  <div class="tw"><table>
+    <tr><th>Month</th><th>BaseShare</th><th>SsnMult</th><th>Reshaped</th><th>NormBase</th><th>ThermAlloc</th><th>EVAlloc</th><th>FinalKWh</th><th>Share</th><th></th></tr>
+    ${mrows}
+    <tr><td>Total</td><td>—</td><td>—</td><td>${f2(r.srb)}</td><td>${f2(r.nb.reduce((a,b)=>a+b,0))}</td><td>${f2(r.ta.reduce((a,b)=>a+b,0))}</td><td>${f2(r.ea.reduce((a,b)=>a+b,0))}</td><td>${f2(r.fkm.reduce((a,b)=>a+b,0))}</td><td>100%</td><td></td></tr>
+  </table></div></div>`);
+
+  // Step 3
+  const brows=Array.from({length:24},(_,h)=>{
+    const isD=DTH.has(h),isCp=CPH.has(h)&&r.pc,isHp=HPH.has(h)&&r.ph,isEV=r.ev_dist[h]>0;
+    let cls=isD?'d':(isCp||isHp)?'p':isEV?'e':'';
+    return `<div class="brow"><div class="blbl">H${String(h).padStart(2,'0')}</div><div class="btrk"><div class="bfil ${cls}" style="width:${r.fkd[h]/maxFkd*100}%"></div></div><div class="bval">${r.fkd[h].toFixed(3)}</div></div>`;
+  }).join('');
+  const hrows=Array.from({length:24},(_,h)=>{
+    const tags=[];
+    if(DTH.has(h))tags.push('Day');
+    if(CPH.has(h)&&r.pc)tags.push('❄Pk');
+    if(HPH.has(h)&&r.ph)tags.push('🔥Pk');
+    if(r.ev_dist[h]>0)tags.push(`EV${r.ev_dist[h].toFixed(3)}`);
+    return `<tr><td>H${String(h).padStart(2,'0')}</td><td>${r.hb[h].toFixed(5)}</td><td>${r.om[h].toFixed(3)}</td><td>${r.pm[h].toFixed(4)}</td><td>${r.adj[h].toFixed(5)}</td><td>${r.ns[h].toFixed(5)}</td><td>${r.nek[h].toFixed(4)}</td><td>${r.evk[h].toFixed(4)}</td><td>${r.fkd[h].toFixed(4)}</td><td><b>${r.fhs[h].toFixed(5)}</b></td><td class="tag" style="font-size:10px">${tags.join(' ')}</td></tr>`;
+  }).join('');
+  const sfhs=r.fhs.reduce((a,b)=>a+b,0);
+  h+=blk('3','Step 3 — 24h Profile',`daily avg ${f2(r.davg,2)} kWh`,`
+  <div class="ssec"><div class="sstit">Formula</div>
+  <div class="fml">AdjShare[h]   = BaseHourlyShare[h] × OccMult[h] × PeakMult[h]
+NormShare[h]  = AdjShare[h] / SUM(AdjShare)
+NonEV_kWh[h]  = (Base+Thermal)/365 × NormShare[h]  <span class="c">daily non-EV = ${f2(r.dne,4)} kWh</span>
+EV_kWh[h]     = (EV_Extra/365) × EVChargingDist[h]  <span class="c">daily EV = ${f2(r.dev,4)} kWh</span>
+FinalShare[h] = (NonEV[h]+EV[h]) / DailyAvg</div>
+  <div style="display:flex;gap:12px">
+    <div class="legend" style="white-space:nowrap"><span style="color:var(--yel)">■</span> Daytime<br><span style="color:var(--ora)">■</span> HVAC peak<br><span style="color:var(--grn)">■</span> EV charging</div>
+    <div style="flex:1">${brows}</div>
+  </div>
+  <div class="ver">✅ Σ FinalHourlyShare = ${sfhs.toFixed(6)}</div></div>
+  <div class="ssec"><div class="sstit">Full 24h Table</div>
+  <div class="tw"><table>
+    <tr><th>Hour</th><th>BaseShr</th><th>OccMlt</th><th>PeakMlt</th><th>AdjShr</th><th>NormShr</th><th>NonEV kWh</th><th>EV kWh</th><th>kWh/day</th><th>FinalShr</th><th></th></tr>
+    ${hrows}
+    <tr><td>Total</td><td>${r.hb.reduce((a,b)=>a+b,0).toFixed(5)}</td><td>—</td><td>—</td><td>${r.adj.reduce((a,b)=>a+b,0).toFixed(5)}</td><td>${r.ns.reduce((a,b)=>a+b,0).toFixed(5)}</td><td>${r.nek.reduce((a,b)=>a+b,0).toFixed(4)}</td><td>${r.evk.reduce((a,b)=>a+b,0).toFixed(4)}</td><td>${r.fkd.reduce((a,b)=>a+b,0).toFixed(4)}</td><td>${sfhs.toFixed(5)}</td><td></td></tr>
+  </table></div></div>`);
+
+  // Step 4
+  const dtS=[7,8,9,10,11,12,13,14,15,16].reduce((a,h)=>a+r.fhs[h],0);
+  const epS=[17,18,19,20].reduce((a,h)=>a+r.fhs[h],0);
+  const onS=[17,18,19,20,21,22,23,0,1,2,3,4,5,6].reduce((a,h)=>a+r.fhs[h],0);
+  h+=blk('4','Step 4 — Final Output','',`
+  <div class="ssec"><div class="sstit">Derivation</div>
+  <div class="fml">日均用电  = ${f2(r.final)} / 365 <span class="r">= ${f2(r.davg,4)} kWh/day</span>
+白天用电  = ${f2(r.davg,4)} × Σ FHS[H07–H16] = ${f2(r.davg,4)} × ${dtS.toFixed(5)} <span class="r">= ${f2(r.dtk,4)} kWh  (${fp(r.dtp)})</span>
+晚高峰    = ${f2(r.davg,4)} × Σ FHS[H17–H20] = ${f2(r.davg,4)} × ${epS.toFixed(5)} <span class="r">= ${f2(r.epk,4)} kWh  (${fp(r.epp)})</span>
+整夜      = ${f2(r.davg,4)} × Σ FHS[H17–H06] = ${f2(r.davg,4)} × ${onS.toFixed(5)} <span class="r">= ${f2(r.onk,4)} kWh  (${fp(r.onp)})</span></div></div>
+  <div class="ogrid">
+    <div class="ocard"><div class="ocl">☀ Daytime  H07–H16</div><div class="ocv">${fp(r.dtp)}</div><div class="ock">${f2(r.dtk,4)} kWh/day</div><div class="ocd ${r.dtp-43.88>=0?'pos':'neg'}">${sgn(r.dtp-43.88)}pp vs old 43.88%</div></div>
+    <div class="ocard"><div class="ocl">🌆 Evening Peak  H17–H20</div><div class="ocv">${fp(r.epp)}</div><div class="ock">${f2(r.epk,4)} kWh/day</div><div class="ocd ${r.epp-22.10>=0?'pos':'neg'}">${sgn(r.epp-22.10)}pp vs old 22.10%</div></div>
+    <div class="ocard"><div class="ocl">🌙 Overnight  H17–H06</div><div class="ocv">${fp(r.onp)}</div><div class="ock">${f2(r.onk,4)} kWh/day</div><div class="ocd ${r.onp-59.60>=0?'pos':'neg'}">${sgn(r.onp-59.60)}pp vs old 59.60%</div></div>
+  </div>`,true);
+
+  document.getElementById('out').innerHTML=h;
+  document.querySelectorAll('.shdr').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const b=el.nextElementSibling,ch=el.querySelector('.chev'),o=b.classList.contains('open');
+      b.classList.toggle('open',!o);el.classList.toggle('open',!o);ch&&ch.classList.toggle('open',!o);
+    });
+  });
+  // open step 4 by default
+  const hdrs=document.querySelectorAll('.shdr'),bdys=document.querySelectorAll('.sbody'),chs=document.querySelectorAll('.chev');
+  [hdrs[3],bdys[3],chs[3]].forEach(e=>e&&e.classList.add('open'));
+}
+
+function blk(n,title,badge,content,open=false){
+  return `<div class="sblock">
+    <div class="shdr${open?' open':''}"><span class="snum">STEP ${n}</span><span class="stit">${title}</span><span class="sbadge">${badge}</span><span class="chev${open?' open':''}">▶</span></div>
+    <div class="sbody${open?' open':''}">${content}</div>
+  </div>`;
+}
+
+function upd(){
+  const sys=document.getElementById('s-q2').value,km=document.getElementById('s-q4').value;
+  document.getElementById('f-q3').classList.toggle('hidden',sys==='No heating or cooling system');
+  document.getElementById('f-q5').classList.toggle('hidden',km==='0');
+  render(calc(
+    document.getElementById('s-state').value,
+    sys,
+    document.getElementById('s-q3').value,
+    parseInt(km)||0,
+    document.getElementById('s-q1').value,
+    document.getElementById('s-q5').value
+  ));
+}
+document.querySelectorAll('select').forEach(e=>e.addEventListener('change',upd));
+upd();
+</script>
+</body>
+</html>

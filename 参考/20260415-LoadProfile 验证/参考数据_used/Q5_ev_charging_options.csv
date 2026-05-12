@@ -1,0 +1,6 @@
+ui_label,internal_key,show_condition,note
+Mostly overnight,mostly_overnight,Q4 != No EV,夜间充电（默认）
+Mixed day and night,mixed_day_and_night,Q4 != No EV,日夜混合
+Mostly daytime,mostly_daytime,Q4 != No EV,白天充电
+Solar-optimized charging,solar_optimized,Q4 != No EV,光伏优化
+skip,mostly_overnight,Q4 != No EV,跳过→默认mostly_overnight

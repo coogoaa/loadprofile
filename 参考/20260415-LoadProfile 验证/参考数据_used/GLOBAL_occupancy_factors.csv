@@ -1,0 +1,5 @@
+occupancy,daytime_mult
+No modification (default/skip),1.0
+Mostly away during the day,0.6
+Working from home,1.4
+Someone always at home,1.2

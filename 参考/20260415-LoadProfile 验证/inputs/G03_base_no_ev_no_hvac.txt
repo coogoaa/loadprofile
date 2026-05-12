@@ -1,0 +1,7 @@
+# G03 纯基础（无HVAC+无EV+始终在家）
+address: 1 Spring Street, Melbourne VIC 3000
+q1: Someone always at home
+q2: No heating or cooling system
+# q3: (不适用 — Q2 无暖通系统)
+q4: No electric vehicle
+# q5: (不适用 — Q4 无 EV)

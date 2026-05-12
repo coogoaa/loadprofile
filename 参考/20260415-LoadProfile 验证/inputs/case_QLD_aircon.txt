@@ -1,0 +1,5 @@
+address: 45 Brisbane Street, Brisbane QLD 4000
+q1: Someone always at home
+q2: Air conditioning
+q3: High
+q4: No electric vehicle

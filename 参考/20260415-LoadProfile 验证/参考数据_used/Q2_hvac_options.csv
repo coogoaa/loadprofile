@@ -1,0 +1,6 @@
+ui_label,internal_key,note
+No heating or cooling system,No heating or cooling system,无系统（Thermal_Extra=0）
+Air conditioning,Air conditioning,仅制冷（重分布，不增加年电量）
+Electric heating,Electric heating,仅制热（+2500kWh基准）
+Heat pump (heating & cooling),Heat pump (heating & cooling),冷暖两用（+1800kWh基准）
+skip,No heating or cooling system,跳过→默认无系统

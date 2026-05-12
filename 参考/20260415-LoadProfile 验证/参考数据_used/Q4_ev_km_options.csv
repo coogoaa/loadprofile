@@ -1,0 +1,8 @@
+ui_label,km_value,note
+No electric vehicle,0,无EV（EV_Extra=0）
+"5,000 km",5000,
+"10,000 km",10000,
+"15,000 km",15000,
+"20,000 km",20000,
+"25,000+ km",25000,
+skip,0,跳过→默认无EV
