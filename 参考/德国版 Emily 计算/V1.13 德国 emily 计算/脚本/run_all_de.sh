@@ -26,25 +26,52 @@ print_warning() {
 
 # 检查参数
 if [ $# -eq 0 ]; then
-    print_error "请提供 cases.md 路径"
-    echo "用法: $0 <cases.md> [data_dir] [output_dir]"
-    echo "示例: $0 ../配置/cases.md ../../../V1.7 测试/测试数据 ../输出"
+    print_error "请提供输入参数"
+    echo "用法（旧格式）: $0 <cases.md> [data_dir] [output_dir]"
+    echo "用法（新格式）: $0 <TSV输入文件> <JSON线上返回文件> [data_dir] [output_dir]"
+    echo "示例（旧格式）: $0 ../配置/cases.md ../../../V1.7 测试/测试数据 ../输出"
+    echo "示例（新格式）: $0 '../输入/待测试的项目 id 和输入.md' '../输入/待测试的线上返回.md' '../../../V1.7 测试/测试数据' '../输出'"
     exit 1
 fi
 
-CASES_MD="$1"
-DATA_DIR="${2:-../../../V1.7 测试/测试数据}"
-OUTPUT_DIR="${3:-../输出}"
+# 判断参数格式（新格式：第二个参数是 JSON 文件）
+if [[ "$2" == *.json ]] || [[ "$2" == *.md ]]; then
+    # 新格式：TSV + JSON 输入
+    TSV_FILE="$1"
+    JSON_FILE="$2"
+    DATA_DIR="${3:-../../../V1.7 测试/测试数据}"
+    OUTPUT_DIR="${4:-../输出}"
+    USE_NEW_FORMAT=true
+else
+    # 旧格式：cases.md
+    CASES_MD="$1"
+    DATA_DIR="${2:-../../../V1.7 测试/测试数据}"
+    OUTPUT_DIR="${3:-../输出}"
+    USE_NEW_FORMAT=false
+fi
 
 print_info "DE V1.13 德国 Emily 计算 - 完整工作流程"
-echo "输入清单: $CASES_MD"
+if [ "$USE_NEW_FORMAT" = true ]; then
+    echo "TSV 输入: $TSV_FILE"
+    echo "JSON 输入: $JSON_FILE"
+else
+    echo "输入清单: $CASES_MD"
+fi
 echo "数据目录: $DATA_DIR"
 echo "输出目录: $OUTPUT_DIR"
 echo ""
 
-# 步骤 0：解析 cases.md 提取 case_id 列表
-print_info "步骤 0/5: 解析 cases.md..."
-python3 parse_cases.py "$CASES_MD" --json /tmp/cases.json
+if [ "$USE_NEW_FORMAT" = true ]; then
+    # 新格式：使用 TSV 输入
+    INPUT_FILE="$TSV_FILE"
+else
+    # 旧格式：使用 cases.md
+    INPUT_FILE="$CASES_MD"
+fi
+
+# 步骤 0：解析输入文件提取 case_id 列表
+print_info "步骤 0/5: 解析输入文件..."
+python3 parse_cases.py "$INPUT_FILE" --json /tmp/cases.json
 CASE_IDS=$(python3 -c "import json; print(' '.join(str(c['case_id']) for c in json.load(open('/tmp/cases.json'))))")
 if [ -z "$CASE_IDS" ]; then
     print_error "未找到任何 case_id"
@@ -64,41 +91,58 @@ echo ""
 
 # 步骤 2：Load Profile 计算
 print_info "步骤 2/5: Load Profile 计算..."
-python3 de_load_profile.py --cases "$CASES_MD" --data-dir "$DATA_DIR" --output-dir "$OUTPUT_DIR"
+python3 de_load_profile.py --cases "$INPUT_FILE" --data-dir "$DATA_DIR" --output-dir "$OUTPUT_DIR"
 echo ""
 
 # 步骤 3：系统组成计算
 print_info "步骤 3/5: 系统组成计算..."
-python3 de_system_composition.py --cases "$CASES_MD" --data-dir "$DATA_DIR" --output-dir "$OUTPUT_DIR"
+python3 de_system_composition.py --cases "$INPUT_FILE" --data-dir "$DATA_DIR" --output-dir "$OUTPUT_DIR"
 echo ""
 
 # 步骤 4：能量流模拟
 print_info "步骤 4/5: 能量流模拟..."
-python3 de_energy_flow.py --cases "$CASES_MD" --data-dir "$DATA_DIR" --output-dir "$OUTPUT_DIR"
+python3 de_energy_flow.py --cases "$INPUT_FILE" --data-dir "$DATA_DIR" --output-dir "$OUTPUT_DIR"
 echo ""
 
 # 步骤 5：ROI 计算
 print_info "步骤 5/5: ROI 计算..."
-python3 de_roi_calculation.py --cases "$CASES_MD" --output-dir "$OUTPUT_DIR"
+python3 de_roi_calculation.py --cases "$INPUT_FILE" --output-dir "$OUTPUT_DIR"
 echo ""
 
 print_info "所有步骤完成！"
 echo ""
 
-# 步骤 6：与线上结果比对（如果输入文件包含线上结果）
+# 步骤 6：与线上结果比对（如果提供了 JSON 线上返回文件）
 print_info "步骤 6/6: 与线上结果比对..."
-for case_id in $CASE_IDS; do
-    # 解析 case_id 对应的 mode 和 tier
-    case_info=$(python3 -c "import json; cases = json.load(open('/tmp/cases.json')); c = next((x for x in cases if str(x['case_id']) == '$case_id'), None); print(f\"{c['mode']} {c['tier']}\")" 2>/dev/null || echo "")
-    if [ -n "$case_info" ]; then
-        mode=$(echo $case_info | awk '{print $1}')
-        tier=$(echo $case_info | awk '{print $2}')
-        output_file="$OUTPUT_DIR/$case_id/$mode/$tier/05_comparison.md"
-        
-        echo "  比对案例 $case_id (mode=$mode, tier=$tier)..."
-        python3 compare_with_online.py "$CASES_MD" "$OUTPUT_DIR" "$case_id" "$mode" "$tier" "$output_file" || print_warning "比对失败（可能输入文件没有线上结果）"
-    fi
-done
+if [ "$USE_NEW_FORMAT" = true ]; then
+    # 新格式：使用 TSV + JSON 输入
+    for case_id in $CASE_IDS; do
+        # 解析 case_id 对应的 mode 和 tier
+        case_info=$(python3 -c "import json; cases = json.load(open('/tmp/cases.json')); c = next((x for x in cases if str(x['case_id']) == '$case_id'), None); print(f\"{c['mode']} {c['tier']}\")" 2>/dev/null || echo "")
+        if [ -n "$case_info" ]; then
+            mode=$(echo $case_info | awk '{print $1}')
+            tier=$(echo $case_info | awk '{print $2}')
+            output_file="$OUTPUT_DIR/$case_id/$mode/$tier/05_comparison.md"
+            
+            echo "  比对案例 $case_id (mode=$mode, tier=$tier)..."
+            python3 compare_with_online.py "$TSV_FILE" "$JSON_FILE" "$OUTPUT_DIR" "$mode" "$tier" "$output_file" || print_warning "比对失败"
+        fi
+    done
+else
+    # 旧格式：尝试从 cases.md 中提取线上结果
+    for case_id in $CASE_IDS; do
+        # 解析 case_id 对应的 mode 和 tier
+        case_info=$(python3 -c "import json; cases = json.load(open('/tmp/cases.json')); c = next((x for x in cases if str(x['case_id']) == '$case_id'), None); print(f\"{c['mode']} {c['tier']}\")" 2>/dev/null || echo "")
+        if [ -n "$case_info" ]; then
+            mode=$(echo $case_info | awk '{print $1}')
+            tier=$(echo $case_info | awk '{print $2}')
+            output_file="$OUTPUT_DIR/$case_id/$mode/$tier/05_comparison.md"
+            
+            echo "  比对案例 $case_id (mode=$mode, tier=$tier)..."
+            python3 compare_with_online.py "$CASES_MD" "$OUTPUT_DIR" "$case_id" "$mode" "$tier" "$output_file" || print_warning "比对失败（可能输入文件没有线上结果）"
+        fi
+    done
+fi
 echo ""
 
 print_info "查看结果："

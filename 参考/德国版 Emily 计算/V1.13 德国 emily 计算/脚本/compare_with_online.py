@@ -139,13 +139,12 @@ def compare_results(online_data, our_results, case_id, mode, tier, original_onli
     lines.append(f"比对报告: Case {case_id} | Mode: {mode} | Tier: {tier}")
     lines.append("=" * 80)
     
-    # 添加原始线上返回结果
-    if original_online_response:
-        lines.append("\n## 原始线上返回结果")
-        lines.append("-" * 80)
-        lines.append("```json")
-        lines.append(json.dumps(original_online_response, ensure_ascii=False, indent=2))
-        lines.append("```")
+    # 保存原始线上返回结果为单独文件
+    if original_online_response and output_file:
+        online_response_file = Path(output_file).parent / '06_online_response.json'
+        online_response_file.parent.mkdir(parents=True, exist_ok=True)
+        online_response_file.write_text(json.dumps(original_online_response, ensure_ascii=False, indent=2), encoding='utf-8')
+        lines.append(f"\n✓ 原始线上返回结果已保存到: {online_response_file}")
         lines.append("")
     
     # 检查线上数据格式是否包含设计方案信息
