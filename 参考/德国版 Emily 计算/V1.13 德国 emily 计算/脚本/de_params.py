@@ -106,11 +106,11 @@ USE_ZH = {'low':'低','medium':'中','high':'高','very_high':'非常高'}
 
 # 在家因子（占空比；白天乘数）— GLOBAL_occupancy_factors.md
 OCC = {
-    'mostly_away':       0.6,  # 白天大多不在家
-    'working_from_home': 1.4,  # 在家办公
-    'someone_at_home':   1.2,  # 家中常有人
+    'mostly_away':         0.6,  # 白天大多不在家
+    'working_from_home':   1.4,  # 在家办公
+    'someone_always_home': 1.2,  # 家中常有人
 }
-OCC_ZH = {'mostly_away':'白天大多不在家','working_from_home':'在家办公','someone_at_home':'家中常有人'}
+OCC_ZH = {'mostly_away':'白天大多不在家','working_from_home':'在家办公','someone_always_home':'家中常有人'}
 
 EV_KWH_PER_KM = 0.18  # GLOBAL_ev_params.md
 # EV 充电时段分布（24h，sum=1）
@@ -125,8 +125,8 @@ EV_PROFILE = {
 COOL_SYS = {'air_con', 'heat_pump'}
 HEAT_SYS = {'electric_heat', 'heat_pump'}
 
-# Q1 既有 PV 区间 → 代表 kWp（R-H 计算流程.md 步骤 0）
-Q1_PV_MAP = {
+# Q0 既有 PV 区间 → 代表 kWp（R-H 计算流程.md 步骤 0）
+Q0_PV_MAP = {
     'under5':  4,
     '5-10':    7,
     '10-15':   12,
@@ -206,24 +206,25 @@ def is_trigger(hvac, ev_km):
     return (ev_km > 0) or (hvac in {'heat_pump', 'electric_heat'})
 
 
-def q1_to_existing_kwp(q1_value):
-    """Q1 区间字符串 → existing_pv kWp；'-'/未知 → -1（走分支2估算）。"""
-    if q1_value in (None, '', '-'):
+def q0_to_existing_kwp(q0_value):
+    """Q0 区间字符串 → existing_pv kWp；'-'/未知 → -1（走分支2估算）。"""
+    if q0_value in (None, '', '-'):
         return -1.0
-    if q1_value in Q1_PV_MAP:
-        return float(Q1_PV_MAP[q1_value])
+    if q0_value in Q0_PV_MAP:
+        return float(Q0_PV_MAP[q0_value])
     # 兼容直接传数字
     try:
-        return float(q1_value)
+        return float(q0_value)
     except (TypeError, ValueError):
         return -1.0
 
 
 # 默认值（"跳过"时的兜底）
 DEFAULTS = {
+    'Q0_existing_pv': '-',
+    'Q1_home_occupation': 'someone_always_home',
     'Q2_hvac':    'no_system',
     'Q3_usage':   'medium',
     'Q4_ev_km':   0,
     'Q5_ev_time': 'mostly_overnight',
-    'Q6_occ':     'someone_at_home',  # cases.md 暂不收，预留
 }

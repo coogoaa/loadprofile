@@ -13,7 +13,8 @@
 | `case_id` | ✅ | 数字 ID，如 `11075` | 驱动 `download_data.py` 下载和 `request.json` 定位 |
 | `mode` | ✅ | `R` / `N` / `RN` | R=改造（自动判 R-H 或 R-B）<br>N=全新建<br>RN=两份都出（双方案对比） |
 | `tier` | ✅ | `A` / `B` / `C` | 方案档：A 经济 / B 标准 / C 高端 |
-| `Q1_existing_pv` | ❎ | `under5` / `5-10` / `10-15` / `15-20` / `20+` / `-` | 既有 PV 容量区间，映射为 4/7/12/17/22 kWp；`-` 走 R-H 分支 2 估算（反推 SAM3D×0.45，封顶 13.16） |
+| `Q0_existing_pv` | ❎ | `under5` / `5-10` / `10-15` / `15-20` / `20+` / `-` | 既有 PV 容量区间，映射为 4/7/12/17/22 kWp；`-` 走 R-H 分支 2 估算（反推 SAM3D×0.45，封顶 13.16） |
+| `Q1_home_occupation` | ❎ | `mostly_away` / `working_from_home` / `someone_always_home` / `-` | 家庭居住状态；`-` 默认 `someone_always_home`（occ_v=1.2） |
 | `Q2_hvac` | ❎ | `no_system` / `air_con` / `heat_pump` / `electric_heat` / `-` | 冷暖系统；`-` 视为 no_system（无暖通负荷） |
 | `Q3_usage` | ❎ | `low` / `medium` / `high` / `very_high` / `-` | 使用强度；`-` 默认 `medium`（am=1.0） |
 | `Q4_ev_km` | ❎ | `0` / `5000` / `10000` / `15000` / `20000` / `25000` / `-` | EV 年里程；`-` 默认 0 |
@@ -24,6 +25,11 @@
 ### 触发上调条件（与 `de_v3.js` 一致）
 当 `Q4_ev_km > 0` 或 `Q2_hvac ∈ {heat_pump, electric_heat}` 时，`tier B` 目标 10.34→13.16，`tier C` 目标 13.16→15.04。
 
+### Q1 家庭居住状态映射（occ_v）
+- `mostly_away`: 0.6（白天大多不在家）
+- `working_from_home`: 1.4（在家办公）
+- `someone_always_home`: 1.2（家中常有人，默认）
+
 ---
 
 ## 输入清单（TSV）
@@ -31,10 +37,10 @@
 > ⚠ 不要改动这片 ```tsv 代码块外的内容。只编辑代码块内表格。
 
 ```tsv
-case_id	mode	tier	Q1_existing_pv	Q2_hvac	Q3_usage	Q4_ev_km	Q5_ev_time	sam3d_kwp	备注
-11075	RN	B	5-10	heat_pump	medium	10000	mostly_overnight	-	BY 巴伐利亚含既有 PV，触发条件命中
-5421	N	B	-	heat_pump	medium	0	-	-	纯新建测试
-6219	R	A	20+	air_con	high	15000	mixed_day_and_night	-	大屋顶老系统
+case_id	mode	tier	Q0_existing_pv	Q1_home_occupation	Q2_hvac	Q3_usage	Q4_ev_km	Q5_ev_time	sam3d_kwp	备注
+11075	RN	B	5-10	someone_always_home	heat_pump	medium	10000	mostly_overnight	-	BY 巴伐利亚含既有 PV，触发条件命中
+5421	N	B	-	someone_always_home	heat_pump	medium	0	-	-	纯新建测试
+6219	R	A	20+	mostly_away	air_con	high	15000	mixed_day_and_night	-	大屋顶老系统
 ```
 
 ---

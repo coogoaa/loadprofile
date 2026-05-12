@@ -18,7 +18,7 @@ import de_params as P
 # ────────────────────────────────────────────────
 # 核心计算（移植自 de_v3.js calcLoad）
 # ────────────────────────────────────────────────
-def calc_load(state, hvac, usage, ev_km, ev_time, occ='someone_at_home'):
+def calc_load(state, hvac, usage, ev_km, ev_time, occ='someone_always_home'):
     """计算 Load Profile，返回包含全部中间变量的 dict（便于报告生成）。
 
     公式总览（与 de_v3.js 完全一致）：
@@ -53,7 +53,7 @@ def calc_load(state, hvac, usage, ev_km, ev_time, occ='someone_at_home'):
     hvac   = hvac   if hvac   in P.HVAC else 'no_system'
     usage  = usage  if usage  in P.UC   else 'medium'
     ev_time = ev_time if ev_time in P.EV_PROFILE else 'mostly_overnight'
-    occ    = occ    if occ    in P.OCC  else 'someone_at_home'
+    occ    = occ    if occ    in P.OCC  else 'someone_always_home'
     ev_km  = max(0, int(ev_km or 0))
 
     base   = P.BASE[state]
@@ -307,6 +307,7 @@ def process_case(case, data_dir, output_dir):
         usage=case['Q3_usage'] if case['Q3_usage'] not in (None, '-') else 'medium',
         ev_km=case['Q4_ev_km'],
         ev_time=case['Q5_ev_time'] if case['Q5_ev_time'] not in (None, '-') else 'mostly_overnight',
+        occ=case['Q1_home_occupation'] if case['Q1_home_occupation'] not in (None, '-') else 'someone_always_home',
     )
     res['case_id'] = case_id
 

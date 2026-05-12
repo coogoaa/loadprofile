@@ -12,7 +12,8 @@ from pathlib import Path
 
 VALID_MODE  = {'R', 'N', 'RN'}
 VALID_TIER  = {'A', 'B', 'C'}
-VALID_Q1    = {'under5', '5-10', '10-15', '15-20', '20+', '-', ''}
+VALID_Q0    = {'under5', '5-10', '10-15', '15-20', '20+', '-', ''}
+VALID_Q1    = {'mostly_away', 'working_from_home', 'someone_always_home', '-', ''}
 VALID_Q2    = {'no_system', 'air_con', 'heat_pump', 'electric_heat', '-', ''}
 VALID_Q3    = {'low', 'medium', 'high', 'very_high', '-', ''}
 VALID_Q5    = {'mostly_overnight', 'mixed_day_and_night', 'mostly_daytime', 'solar_optimized', '-', ''}
@@ -96,9 +97,13 @@ def validate_and_normalize(row, lineno):
     if tier not in VALID_TIER:
         errors.append(f'tier 须为 A/B/C，得到: {tier!r}')
 
-    q1 = (_norm(row.get('Q1_existing_pv')) or '-')
+    q0 = (_norm(row.get('Q0_existing_pv')) or '-')
+    if q0 not in VALID_Q0 and q0 != '-':
+        errors.append(f'Q0_existing_pv 取值非法: {q0!r}')
+
+    q1 = (_norm(row.get('Q1_home_occupation')) or '-')
     if q1 not in VALID_Q1 and q1 != '-':
-        errors.append(f'Q1_existing_pv 取值非法: {q1!r}')
+        errors.append(f'Q1_home_occupation 取值非法: {q1!r}')
 
     q2 = (_norm(row.get('Q2_hvac')) or '-')
     if q2 not in VALID_Q2 and q2 != '-':
@@ -127,7 +132,8 @@ def validate_and_normalize(row, lineno):
         'case_id':         case_id,
         'mode':            mode,
         'tier':            tier,
-        'Q1_existing_pv':  q1,
+        'Q0_existing_pv':  q0,
+        'Q1_home_occupation': q1 if q1 != '-' else '-',
         'Q2_hvac':         q2 if q2 != '-' else '-',
         'Q3_usage':        q3 if q3 != '-' else '-',
         'Q4_ev_km':        q4_km,
@@ -171,7 +177,7 @@ def main():
     print(f'✓ 解析成功，共 {len(cases)} 个 case：')
     for c in cases:
         print(f'  [{c["case_id"]}] mode={c["mode"]} tier={c["tier"]} '
-              f'Q1={c["Q1_existing_pv"]} Q2={c["Q2_hvac"]} Q3={c["Q3_usage"]} '
+              f'Q0={c["Q0_existing_pv"]} Q1={c["Q1_home_occupation"]} Q2={c["Q2_hvac"]} Q3={c["Q3_usage"]} '
               f'Q4={c["Q4_ev_km"]}km Q5={c["Q5_ev_time"]} '
               f'sam3d={c["sam3d_kwp"]} | {c["note"]}')
 

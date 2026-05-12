@@ -158,7 +158,8 @@ def build_cashflow(years, sys_cost, ef_totals):
 def render_report(case, mode, sc, ef, sys_cost, cost_b, cf, rows, irr_v, npv_v, pb):
     lines = []
     add = lines.append
-    add(f'# ROI 报告 · case `{case["case_id"]}` · {mode} · tier `{case["tier"]}`')
+    tier = sc.get('tier', case.get('tier', 'unknown'))
+    add(f'# ROI 报告 · case `{case["case_id"]}` · {mode} · tier `{tier}`')
     add('')
     add('> 步骤 4 / 4 · 引擎 = DE €参数 IRR/NPV/Payback')
     add('')
@@ -203,8 +204,8 @@ def render_report(case, mode, sc, ef, sys_cost, cost_b, cf, rows, irr_v, npv_v, 
     add('cf[t]            = saving[t]')
     add('```')
     add('')
-    add(f'其中：load_total = {ef["load_total"]:,.1f}, import = {ef["import_grid"]:,.1f}, '
-        f'export = {ef["export"]:,.1f} (来自步骤 3)')
+    add(f'其中：load_total = {ef["totals"]["load_total"]:,.1f}, import = {ef["totals"]["import_grid"]:,.1f}, '
+        f'export = {ef["totals"]["export"]:,.1f} (来自步骤 3)')
     add('')
 
     # 4. 年现金流表
@@ -244,43 +245,39 @@ def process_case(case, output_dir, years):
     out_dir = output_dir / case_id
 
     for mode in ('R', 'N'):
-        sub = out_dir / mode
-        sc_file = sub / '02_system_composition.json'
-        ef_file = sub / '03_energy_flow.json'
-        if not (sc_file.exists() and ef_file.exists()):
-            continue
-        sc = json.loads(sc_file.read_text(encoding='utf-8'))
-        ef = json.loads(ef_file.read_text(encoding='utf-8'))
-        ef_totals = ef['totals']
+        for tier in ('A', 'B', 'C'):
+            sub = out_dir / mode / tier
+            sc_file = sub / '02_system_composition.json'
+            ef_file = sub / '03_energy_flow.json'
+            if not (sc_file.exists() and ef_file.exists()):
+                continue
+            sc = json.loads(sc_file.read_text(encoding='utf-8'))
+            ef = json.loads(ef_file.read_text(encoding='utf-8'))
+            ef_totals = ef['totals']
 
-        sys_cost, cost_b = compute_sys_cost(mode, sc)
-        cf, rows = build_cashflow(years, sys_cost, ef_totals)
-        irr_v = irr(cf)
-        npv_v = npv(P.CASH_INTEREST_RATE, cf)
-        pb = payback_period(cf)
+            sys_cost, cost_b = compute_sys_cost(mode, sc)
+            cf, rows = build_cashflow(years, sys_cost, ef_totals)
+            irr_v = irr(cf)
+            npv_v = npv(P.CASH_INTEREST_RATE, cf)
+            pb = payback_period(cf)
 
-        out = {
-            'case_id': case_id, 'mode': mode, 'tier': case['tier'],
-            'sys_cost': sys_cost, 'cost_breakdown': cost_b,
-            'financial': {
+            out = {
+                'case_id': case_id, 'mode': mode, 'tier': tier,
                 'years': years,
-                'buy_rate': P.GRID_BUY_RATE, 'sell_rate': P.GRID_SELL_RATE,
-                'daily_fixed': P.DAILY_FIXED_CHARGE,
-                'inflation': P.ELEC_INFLATION_RATE,
-                'cash_rate': P.CASH_INTEREST_RATE,
-            },
-            'cashflow': cf,
-            'rows': rows,
-            'IRR': irr_v, 'NPV': npv_v, 'payback_years': pb,
-        }
-        (sub / '04_roi.json').write_text(
-            json.dumps(out, ensure_ascii=False, indent=2), encoding='utf-8')
-        (sub / '04_roi.md').write_text(
-            render_report(case, mode, sc, ef_totals, sys_cost, cost_b, cf, rows, irr_v, npv_v, pb),
-            encoding='utf-8')
-        irr_s = '–' if irr_v is None else f'{irr_v*100:.2f}%'
-        pb_s  = '–' if pb is None else f'{pb:.2f}'
-        print(f'  ✓ [{case_id}/{mode}] cost=€{sys_cost:,.0f} IRR={irr_s} NPV=€{npv_v:,.0f} payback={pb_s}年')
+                'cost_breakdown': cost_b,
+                'total_cost': sys_cost,
+                'cashflow': cf,
+                'IRR': irr_v,
+                'NPV': npv_v,
+                'payback_years': pb,
+            }
+            (sub / '04_roi.json').write_text(
+                json.dumps(out, ensure_ascii=False, indent=2), encoding='utf-8')
+            (sub / '04_roi.md').write_text(
+                render_report(case, mode, sc, ef, sys_cost, cost_b, cf, rows, irr_v, npv_v, pb),
+                encoding='utf-8')
+            print(f'  ✓ [{case_id}/{mode}/{tier}] cost=€{sys_cost:,.0f} IRR={irr_v*100:.2f}% '
+                  f'NPV=€{npv_v:,.0f} payback={pb:.2f}年' if irr_v else f'  ✓ [{case_id}/{mode}/{tier}] cost=€{sys_cost:,.0f} IRR=-- NPV=€{npv_v:,.0f} payback=--')
 
 
 def main():
@@ -292,9 +289,13 @@ def main():
     from parse_cases import parse_cases_md
     cases = parse_cases_md(args.cases)
     output_dir = Path(args.output_dir)
-    print(f'步骤 4 / ROI：处理 {len(cases)} 个 case  (years={args.years})')
-    for c in cases:
-        process_case(c, output_dir, args.years)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # 按 case_id 去重
+    unique_case_ids = list({c['case_id'] for c in cases})
+    print(f'步骤 4 / ROI：处理 {len(unique_case_ids)} 个 case (去重后)  (years={args.years})')
+    for case_id in unique_case_ids:
+        process_case({'case_id': case_id}, output_dir, args.years)
     print('完成。')
 
 

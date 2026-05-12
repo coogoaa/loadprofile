@@ -37,10 +37,10 @@ def estimate_sam3d(panels, override=None):
 
 
 def get_existing_pv(case, request_data):
-    """获取既有 PV：优先 case.Q1（若不为 -），否则用 request.existingPvKwp，否则 -1（走分支2）"""
-    q1 = case.get('Q1_existing_pv')
-    if q1 and q1 != '-':
-        return P.q1_to_existing_kwp(q1), f'cases.md Q1={q1}'
+    """获取既有 PV：优先 case.Q0（若不为 -），否则用 request.existingPvKwp，否则 -1（走分支2）"""
+    q0 = case.get('Q0_existing_pv')
+    if q0 and q0 != '-':
+        return P.q0_to_existing_kwp(q0), f'cases.md Q0={q0}'
     e = (request_data.get('project') or {}).get('existingPvKwp')
     if e is not None and float(e) > 0:
         return float(e), 'request.json project.existingPvKwp'
@@ -178,11 +178,6 @@ def calc_n(tier, hvac, ev_km, sam3d, mask2d):
     roof_limited = sam3d_v > 0 and sam3d_v < target_pv_capped
 
     panels = math.floor(roof_capped / P.PANEL_KW) if roof_capped > 0 else 0
-    panels_ceil = math.ceil(roof_capped / P.PANEL_KW) if roof_capped > 0 else 0
-    if panels_ceil * P.PANEL_KW <= sam3d_v + 1e-9:
-        panels = panels_ceil
-    if panels * P.PANEL_KW > P.PV_HARDCAP:
-        panels = math.floor(P.PV_HARDCAP / P.PANEL_KW)
     pv_pre = panels * P.PANEL_KW
 
     inv = pick_inverter(pv_pre, tier)
@@ -199,7 +194,6 @@ def calc_n(tier, hvac, ev_km, sam3d, mask2d):
         'sam3d': sam3d_v, 'mask2d': mask2d or 0,
         'roof_capped': roof_capped, 'roof_limited': roof_limited,
         'panels_floor': math.floor(roof_capped / P.PANEL_KW) if roof_capped > 0 else 0,
-        'panels_ceil': panels_ceil,
         'panels': panels, 'pv_pre': pv_pre,
         'inv': inv, 'actual_pv': actual_pv, 'actual_panels': actual_panels,
         'bat_target': bat_target, 'bat_kWh': bat_kwh,
@@ -423,12 +417,8 @@ def render_report_n(case, lp, gis_state, n, sel_annual_kwh, sam3d_src):
     else:
         add(f'✓ 屋顶足够')
     add('')
-    add(f'panels_floor = floor({n["roof_capped"]:.2f} / 0.470) = {n["panels_floor"]}')
-    add(f'panels_ceil  = ceil({n["roof_capped"]:.2f} / 0.470)  = {n["panels_ceil"]}')
-    add(f'  → 取 ceil 时是否破屋顶? ceil×0.470={n["panels_ceil"]*P.PANEL_KW:.3f} '
-        f'{"≤" if n["panels_ceil"]*P.PANEL_KW<=n["sam3d"]+1e-9 else ">"} SAM3D({n["sam3d"]:.2f})')
-    add(f'  → 选 panels = {n["panels"]} 块')
-    add(f'pv_pre      = panels × 0.470 = {n["pv_pre"]:.2f} kWp')
+    add(f'panels = floor({n["roof_capped"]:.2f} / 0.470) = {n["panels"]} 块')
+    add(f'pv_pre = panels × 0.470 = {n["pv_pre"]:.2f} kWp')
     add(f'assert pv_pre ≤ min({P.PV_HARDCAP}, SAM3D={n["sam3d"]:.2f}) → '
         f'{"✅" if n["pv_pre"] <= min(P.PV_HARDCAP, n["sam3d"])+1e-6 else "❌"}')
     add('```')
@@ -510,7 +500,7 @@ def process_case(case, data_dir, output_dir):
         out_modes.append('N')
 
     for m in out_modes:
-        sub = output_dir / case_id / m
+        sub = output_dir / case_id / m / case['tier']
         sub.mkdir(parents=True, exist_ok=True)
         if m == 'R':
             rh = calc_rh(existing, sam3d, mask2d, case['tier'], hvac_in, ev_km)

@@ -169,7 +169,8 @@ def simulate_battery(gen, load, bat_capacity_kwh):
 def render_report(case, mode, sc, lp, gen, load, sim):
     lines = []
     add = lines.append
-    add(f'# 能量流报告 · case `{case["case_id"]}` · {mode} · tier `{case["tier"]}`')
+    tier = sc.get('tier', case.get('tier', 'unknown'))
+    add(f'# 能量流报告 · case `{case["case_id"]}` · {mode} · tier `{tier}`')
     add('')
     add('> 步骤 3 / 4 · 引擎 = 12×24 月度小时矩阵 + 日循环电池模拟')
     add('')
@@ -292,53 +293,54 @@ def process_case(case, data_dir, output_dir):
         panels_all = json.loads(pan_file.read_text(encoding='utf-8'))
 
     for mode in ('R', 'N'):
-        sub = out_dir / mode
-        sc_file = sub / '02_system_composition.json'
-        if not sc_file.exists():
-            continue
-        sc = json.loads(sc_file.read_text(encoding='utf-8'))
+        for tier in ('A', 'B', 'C'):
+            sub = out_dir / mode / tier
+            sc_file = sub / '02_system_composition.json'
+            if not sc_file.exists():
+                continue
+            sc = json.loads(sc_file.read_text(encoding='utf-8'))
 
-        n_select = sc['actual_panels'] if mode == 'R' else sc['n']['actual_panels']
-        bat_kwh = sc['rh']['bat_kWh'] if mode == 'R' else sc['n']['bat_kWh']
-        # 选板（按年发电量降序）
-        sorted_panels = sorted(
-            panels_all,
-            key=lambda p: (p.get('generationPower') or {}).get('annualGeneratePower', 0),
-            reverse=True,
-        )
-        chosen = sorted_panels[:n_select] if n_select > 0 else []
+            n_select = sc['actual_panels'] if mode == 'R' else sc['n']['actual_panels']
+            bat_kwh = sc['rh']['bat_kWh'] if mode == 'R' else sc['n']['bat_kWh']
+            # 选板（按年发电量降序）
+            sorted_panels = sorted(
+                panels_all,
+                key=lambda p: (p.get('generationPower') or {}).get('annualGeneratePower', 0),
+                reverse=True,
+            )
+            chosen = sorted_panels[:n_select] if n_select > 0 else []
 
-        gen, _ = build_generation_matrix(chosen)
-        load, h_share = build_load_matrix(lp)
-        sim = simulate_battery(gen, load, bat_kwh)
+            gen, _ = build_generation_matrix(chosen)
+            load, h_share = build_load_matrix(lp)
+            sim = simulate_battery(gen, load, bat_kwh)
 
-        out = {
-            'case_id': case_id, 'mode': mode, 'tier': case['tier'],
-            'selected_panels': n_select,
-            'bat_kwh': bat_kwh,
-            'totals': {
-                'gen_total': sim['gen_total'],
-                'load_total': sim['load_total'],
-                'direct': sim['direct'],
-                'discharge': sim['discharge'],
-                'charge': sim['charge'],
-                'export': sim['export'],
-                'import_grid': sim['import_grid'],
-                'self_use': sim['self_use'],
-                'SCR': sim['SCR'], 'SSR': sim['SSR'],
-            },
-            'monthly': sim['monthly'],
-            'matrix_gen': gen,
-            'matrix_load': load,
-            'hour_share': h_share,
-        }
-        (sub / '03_energy_flow.json').write_text(
-            json.dumps(out, ensure_ascii=False, indent=2), encoding='utf-8')
-        (sub / '03_energy_flow.md').write_text(
-            render_report(case, mode, sc, lp, gen, load, sim), encoding='utf-8')
-        print(f'  ✓ [{case_id}/{mode}] gen={sim["gen_total"]:,.0f} load={sim["load_total"]:,.0f} '
-              f'SCR={sim["SCR"]*100:.1f}% SSR={sim["SSR"]*100:.1f}% '
-              f'import={sim["import_grid"]:,.0f} export={sim["export"]:,.0f}')
+            out = {
+                'case_id': case_id, 'mode': mode, 'tier': tier,
+                'selected_panels': n_select,
+                'bat_kwh': bat_kwh,
+                'totals': {
+                    'gen_total': sim['gen_total'],
+                    'load_total': sim['load_total'],
+                    'direct': sim['direct'],
+                    'discharge': sim['discharge'],
+                    'charge': sim['charge'],
+                    'export': sim['export'],
+                    'import_grid': sim['import_grid'],
+                    'self_use': sim['self_use'],
+                    'SCR': sim['SCR'], 'SSR': sim['SSR'],
+                },
+                'monthly': sim['monthly'],
+                'matrix_gen': gen,
+                'matrix_load': load,
+                'hour_share': h_share,
+            }
+            (sub / '03_energy_flow.json').write_text(
+                json.dumps(out, ensure_ascii=False, indent=2), encoding='utf-8')
+            (sub / '03_energy_flow.md').write_text(
+                render_report(case, mode, sc, lp, gen, load, sim), encoding='utf-8')
+            print(f'  ✓ [{case_id}/{mode}/{tier}] gen={sim["gen_total"]:,.0f} load={sim["load_total"]:,.0f} '
+                  f'SCR={sim["SCR"]*100:.1f}% SSR={sim["SSR"]*100:.1f}% '
+                  f'import={sim["import_grid"]:,.0f} export={sim["export"]:,.0f}')
 
 
 def main():
@@ -351,9 +353,13 @@ def main():
     cases = parse_cases_md(args.cases)
     data_dir = Path(args.data_dir)
     output_dir = Path(args.output_dir)
-    print(f'步骤 3 / 能量流：处理 {len(cases)} 个 case')
-    for c in cases:
-        process_case(c, data_dir, output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # 按 case_id 去重
+    unique_case_ids = list({c['case_id'] for c in cases})
+    print(f'步骤 3 / 能量流：处理 {len(unique_case_ids)} 个 case (去重后)')
+    for case_id in unique_case_ids:
+        process_case({'case_id': case_id}, data_dir, output_dir)
     print('完成。')
 
 

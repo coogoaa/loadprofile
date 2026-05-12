@@ -84,6 +84,23 @@ echo ""
 
 print_info "所有步骤完成！"
 echo ""
+
+# 步骤 6：与线上结果比对（如果输入文件包含线上结果）
+print_info "步骤 6/6: 与线上结果比对..."
+for case_id in $CASE_IDS; do
+    # 解析 case_id 对应的 mode 和 tier
+    case_info=$(python3 -c "import json; cases = json.load(open('/tmp/cases.json')); c = next((x for x in cases if str(x['case_id']) == '$case_id'), None); print(f\"{c['mode']} {c['tier']}\")" 2>/dev/null || echo "")
+    if [ -n "$case_info" ]; then
+        mode=$(echo $case_info | awk '{print $1}')
+        tier=$(echo $case_info | awk '{print $2}')
+        output_file="$OUTPUT_DIR/$case_id/$mode/$tier/05_comparison.md"
+        
+        echo "  比对案例 $case_id (mode=$mode, tier=$tier)..."
+        python3 compare_with_online.py "$CASES_MD" "$OUTPUT_DIR" "$case_id" "$mode" "$tier" "$output_file" || print_warning "比对失败（可能输入文件没有线上结果）"
+    fi
+done
+echo ""
+
 print_info "查看结果："
 for case_id in $CASE_IDS; do
     if [ -d "$OUTPUT_DIR/$case_id/R" ]; then
@@ -92,12 +109,14 @@ for case_id in $CASE_IDS; do
         echo "    - 系统组成: $OUTPUT_DIR/$case_id/R/02_system_composition.json / .md"
         echo "    - 能量流: $OUTPUT_DIR/$case_id/R/03_energy_flow.json / .md"
         echo "    - ROI: $OUTPUT_DIR/$case_id/R/04_roi.json / .md"
+        echo "    - 比对报告: $OUTPUT_DIR/$case_id/R/*/05_comparison.md"
     fi
     if [ -d "$OUTPUT_DIR/$case_id/N" ]; then
         echo "  案例 $case_id (N 全新建):"
         echo "    - 系统组成: $OUTPUT_DIR/$case_id/N/02_system_composition.json / .md"
         echo "    - 能量流: $OUTPUT_DIR/$case_id/N/03_energy_flow.json / .md"
         echo "    - ROI: $OUTPUT_DIR/$case_id/N/04_roi.json / .md"
+        echo "    - 比对报告: $OUTPUT_DIR/$case_id/N/*/05_comparison.md"
     fi
 done
 echo ""
