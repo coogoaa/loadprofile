@@ -203,7 +203,9 @@ function renderCompare(){
 }
 
 function doCompare(){
+  console.log('DEBUG: doCompare() called');
   const input=document.getElementById('onlineJsonInput').value.trim();
+  console.log('DEBUG: input length =', input.length);
   if(!input){
     alert('请先贴入线上返回的 JSON 结果');
     return;
