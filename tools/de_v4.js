@@ -793,6 +793,11 @@ function upd2(){
     const composition={rh,inv};
     const energy=buildEnergyFlow('R',r,composition,uploadedPanels);
     const roi=buildROI('R',composition,energy,years);
+    // 保存到全局变量供线上比对使用
+    window.currentRH=rh;
+    window.currentEnergy=energy;
+    window.currentROI=roi;
+    window.currentN=null;
     renderRH(r,rh,inv,energy,roi);
   }else{
     // v3: N 场景传入 SAM3D / 2D，启用屋顶物理约束
@@ -800,6 +805,11 @@ function upd2(){
     const composition={n};
     const energy=buildEnergyFlow('N',r,composition,uploadedPanels);
     const roi=buildROI('N',composition,energy,years);
+    // 保存到全局变量供线上比对使用
+    window.currentN=n;
+    window.currentEnergy=energy;
+    window.currentROI=roi;
+    window.currentRH=null;
     renderN(r,n,energy,roi);
   }
 }
