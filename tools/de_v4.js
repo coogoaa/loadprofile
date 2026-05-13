@@ -738,7 +738,16 @@ function bindTabs(){
   document.querySelectorAll('#tabnav button').forEach(b=>{
     b.addEventListener('click',()=>{
       document.querySelectorAll('#tabnav button').forEach(x=>x.classList.toggle('active',x===b));
-      currentTab=b.dataset.tab;buildSidebar();upd2();
+      currentTab=b.dataset.tab;
+      if(currentTab==='compare'){
+        document.getElementById('side').innerHTML='';
+        if(typeof renderCompare==='function'){
+          renderCompare();
+        }
+      }else{
+        buildSidebar();
+        upd2();
+      }
     });
   });
 }
@@ -746,6 +755,12 @@ function bindTabs(){
 function upd2(){
   if(currentTab==='params'){renderParams();return;}
   if(currentTab==='about'){renderAbout();return;}
+  if(currentTab==='compare'){
+    if(typeof renderCompare==='function'){
+      renderCompare();
+    }
+    return;
+  }
   const q1=document.getElementById('s-q1').value;
   const sys=document.getElementById('s-q2').value;
   const q3=document.getElementById('s-q3').value;

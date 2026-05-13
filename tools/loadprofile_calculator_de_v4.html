@@ -38,6 +38,20 @@ select.skipped{border-color:var(--yel);background:rgba(208,148,34,.08);}
 .project-fetch button:disabled{opacity:.45;cursor:wait;}
 .field.hidden,.hidden{display:none;}
 .note{background:var(--sur2);border:1px solid var(--bor);border-left:3px solid var(--ac);border-radius:4px;padding:7px 10px;font-size:11px;color:var(--dim);margin-top:8px;}
+.compare-area{background:var(--sur2);border:1px solid var(--bor);border-radius:6px;padding:14px;margin-bottom:16px;}
+.compare-area textarea{width:100%;height:120px;background:var(--bg);border:1px solid var(--bor2);color:var(--tx);padding:10px;border-radius:5px;font-size:11px;font-family:var(--mono);resize:vertical;outline:none;}
+.compare-area textarea:focus{border-color:var(--ac);}
+.compare-area button{background:var(--ac2);border:none;color:#fff;font-size:12px;font-weight:700;padding:8px 16px;border-radius:5px;cursor:pointer;margin-top:10px;font-family:inherit;}
+.compare-area button:hover{background:var(--ac);}
+.compare-result{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:16px;margin-top:16px;display:none;}
+.compare-result.show{display:block;}
+.compare-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;margin-top:12px;}
+.compare-table th{background:var(--sur2);color:var(--dim);padding:6px 10px;text-align:left;font-size:10px;border-bottom:1px solid var(--bor);}
+.compare-table td{padding:6px 10px;border-bottom:1px solid var(--bor);color:var(--tx);}
+.compare-table .diff{color:var(--red);font-weight:700;}
+.compare-table .match{color:var(--grn);font-weight:700;}
+.compare-table .online{color:var(--ac);}
+.compare-table .local{color:var(--pur);}
 .note.skip{border-left-color:var(--yel);}
 .note.ok{border-left-color:var(--grn);}
 .note.err{border-left-color:var(--red);color:#d8a0a0;}
@@ -153,6 +167,7 @@ tr.skip td{color:var(--yel);font-weight:700;}
   <div class="hsub">V1.13 集成 · LoadProfile + 系统组成 + 能量流 + ROI</div>
   <nav class="tabnav" id="tabnav">
     <button data-tab="calc" class="active">📊 场景计算</button>
+    <button data-tab="compare">🔍 线上比对</button>
     <button data-tab="params">📚 参数库</button>
     <button data-tab="about">ℹ 说明</button>
   </nav>
@@ -163,5 +178,181 @@ tr.skip td{color:var(--yel);font-weight:700;}
 <main id="out"></main>
 </div>
 <script src="de_v4.js"></script>
+<script>
+// 线上比对功能
+// 确保 f2 函数可用（从 de_v4.js 复制）
+if(typeof f2==='undefined'){
+  window.f2=(v,d=2)=>v.toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
+}
+if(typeof esc==='undefined'){
+  window.esc=s=>(''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderCompare(){
+  const h='<div class="params-hero">'+
+    '<h2>🔍 线上结果比对</h2>'+
+    '<p>贴入线上返回的 JSON 结果，与当前计算结果进行关键指标比对。</p>'+
+    '</div>'+
+    '<div class="compare-area">'+
+    '<label style="font-size:12px;color:var(--dim);margin-bottom:8px;display:block;">线上返回 JSON（支持两种格式）</label>'+
+    '<textarea id="onlineJsonInput" placeholder="请贴入线上返回的 JSON 结果...&#10;&#10;格式 1: { code: 200, data: { designs: [...] } }&#10;格式 2: [ designs 数组 ]"></textarea>'+
+    '<button onclick="doCompare()">开始比对</button>'+
+    '</div>'+
+    '<div id="compareResult" class="compare-result"></div>';
+  document.getElementById('out').innerHTML=h;
+}
+
+function doCompare(){
+  const input=document.getElementById('onlineJsonInput').value.trim();
+  if(!input){
+    alert('请先贴入线上返回的 JSON 结果');
+    return;
+  }
+  
+  let onlineData;
+  try{
+    onlineData=JSON.parse(input);
+  }catch(e){
+    alert('JSON 解析失败，请检查格式');
+    return;
+  }
+  
+  // 解析两种格式
+  let designs=[];
+  if(Array.isArray(onlineData)){
+    // 格式 2: 直接是 designs 数组
+    designs=onlineData;
+  }else if(onlineData.data&&onlineData.data.designs){
+    // 格式 1: 完整 API 响应
+    designs=onlineData.data.designs;
+  }else{
+    alert('无法识别的 JSON 格式');
+    return;
+  }
+  
+  // 获取当前计算结果
+  const currentResult=getCurrentCalculationResult();
+  if(!currentResult){
+    alert('请先在「场景计算」页面完成计算');
+    return;
+  }
+  
+  // 比对并显示结果
+  const comparison=compareWithOnline(designs,currentResult);
+  renderComparisonResult(comparison);
+}
+
+function getCurrentCalculationResult(){
+  // 从全局变量中获取当前计算结果
+  if(window.currentRH){
+    return{mode:'R',tier:window.currentRH.tier,rh:window.currentRH,energy:window.currentEnergy,roi:window.currentROI};
+  }else if(window.currentN){
+    return{mode:'N',tier:window.currentN.tier,n:window.currentN,energy:window.currentEnergy,roi:window.currentROI};
+  }
+  return null;
+}
+
+function compareWithOnline(designs,local){
+  const tierMap={'maxValue':'A','mostPopular':'B','customFit':'C'};
+  const designName=tierMap[local.tier]||local.tier;
+  const onlineDesign=designs.find(d=>d.designName===designName);
+  
+  if(!onlineDesign){
+    return{error:'未找到对应的设计方案（'+designName+'）'};
+  }
+  
+  const result={
+    mode:local.mode,
+    tier:local.tier,
+    online:onlineDesign,
+    local:local,
+    comparisons:[]
+  };
+  
+  // 提取关键指标进行比对
+  const metrics=[
+    {key:'systemSize',name:'系统容量 (kW)',online:onlineDesign.systemSize},
+    {key:'upfrontInvestment',name:'投资额 (€)',online:onlineDesign.upfrontInvestment},
+    {key:'batteryCapacity',name:'电池容量 (kWh)',online:onlineDesign.batteryCapacity},
+    {key:'irr',name:'IRR',online:onlineDesign.irr,format:'percent'},
+    {key:'paybackPeriod',name:'回本期 (年)',online:onlineDesign.paybackPeriod},
+    {key:'selfConsumption',name:'自用率',online:onlineDesign.selfConsumption,format:'percent'},
+    {key:'annualBillSavings',name:'年节省 (€)',online:onlineDesign.annualBillSavings}
+  ];
+  
+  metrics.forEach(m=>{
+    let localValue;
+    if(local.mode==='R'){
+      if(m.key==='systemSize')localValue=local.rh.PV_total;
+      else if(m.key==='upfrontInvestment')localValue=local.roi.cost_breakdown.total;
+      else if(m.key==='batteryCapacity')localValue=local.rh.bat_kWh;
+      else if(m.key==='irr')localValue=local.roi.IRR;
+      else if(m.key==='paybackPeriod')localValue=local.roi.payback_years;
+      else if(m.key==='selfConsumption')localValue=local.energy.scr_pct/100;
+      else if(m.key==='annualBillSavings')localValue=local.roi.annual_savings;
+    }else{
+      if(m.key==='systemSize')localValue=local.n.actual_pv;
+      else if(m.key==='upfrontInvestment')localValue=local.roi.cost_breakdown.total;
+      else if(m.key==='batteryCapacity')localValue=local.n.bat_kWh;
+      else if(m.key==='irr')localValue=local.roi.IRR;
+      else if(m.key==='paybackPeriod')localValue=local.roi.payback_years;
+      else if(m.key==='selfConsumption')localValue=local.energy.scr_pct/100;
+      else if(m.key==='annualBillSavings')localValue=local.roi.annual_savings;
+    }
+    
+    const diff=Math.abs(m.online-localValue);
+    const diffPct=localValue>0?diff/localValue*100:0;
+    const isMatch=diffPct<5; // 差异小于5%视为匹配
+    
+    result.comparisons.push({
+      name:m.name,
+      online:m.online,
+      local:localValue,
+      diff:diff,
+      diffPct:diffPct,
+      isMatch:isMatch,
+      format:m.format||'number'
+    });
+  });
+  
+  return result;
+}
+
+function renderComparisonResult(comparison){
+  const container=document.getElementById('compareResult');
+  if(comparison.error){
+    container.innerHTML='<div class="note err">'+esc(comparison.error)+'</div>';
+    container.classList.add('show');
+    return;
+  }
+  
+  let h='<h3 style="font-size:14px;font-weight:700;color:var(--ac);margin-bottom:12px;">比对结果：'+comparison.mode+' 模式 · '+comparison.tier+' 档</h3>';
+  h+='<table class="compare-table">';
+  h+='<tr><th>指标</th><th>线上结果</th><th>本地计算</th><th>差异</th><th>差异率</th><th>状态</th></tr>';
+  
+  comparison.comparisons.forEach(c=>{
+    const onlineStr=c.format==='percent'?(c.online*100).toFixed(2)+'%':f2(c.online);
+    const localStr=c.format==='percent'?(c.local*100).toFixed(2)+'%':f2(c.local);
+    const diffStr=c.format==='percent'?c.diffPct.toFixed(2)+'%':f2(c.diff);
+    const statusClass=c.isMatch?'match':'diff';
+    const statusText=c.isMatch?'✓ 匹配':'✗ 差异';
+    
+    h+='<tr>'+
+      '<td>'+c.name+'</td>'+
+      '<td class="online">'+onlineStr+'</td>'+
+      '<td class="local">'+localStr+'</td>'+
+      '<td>'+diffStr+'</td>'+
+      '<td>'+c.diffPct.toFixed(2)+'%</td>'+
+      '<td class="'+statusClass+'">'+statusText+'</td>'+
+      '</tr>';
+  });
+  
+  h+='</table>';
+  h+='<div class="note" style="margin-top:12px;">注：差异率小于 5% 视为匹配。线上结果可能包含其他因素（补贴、税率等），仅供参考。</div>';
+  
+  container.innerHTML=h;
+  container.classList.add('show');
+}
+</script>
 </body>
 </html>
