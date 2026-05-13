@@ -254,8 +254,13 @@ function getCurrentCalculationResult(){
 
 function compareWithOnline(designs,local){
   const tierMap={'A':'maxValue','B':'mostPopular','C':'customFit'};
+  console.log('DEBUG: local.tier =', local.tier);
+  console.log('DEBUG: tierMap[local.tier] =', tierMap[local.tier]);
   const designName=tierMap[local.tier]||local.tier;
+  console.log('DEBUG: designName =', designName);
+  console.log('DEBUG: available designs =', designs.map(d=>d.designName));
   const onlineDesign=designs.find(d=>d.designName===designName);
+  console.log('DEBUG: onlineDesign =', onlineDesign);
   
   if(!onlineDesign){
     return{error:'未找到对应的设计方案（'+designName+'）'};
