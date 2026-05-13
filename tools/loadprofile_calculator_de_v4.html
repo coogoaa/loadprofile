@@ -253,7 +253,7 @@ function getCurrentCalculationResult(){
 }
 
 function compareWithOnline(designs,local){
-  const tierMap={'maxValue':'A','mostPopular':'B','customFit':'C'};
+  const tierMap={'A':'maxValue','B':'mostPopular','C':'customFit'};
   const designName=tierMap[local.tier]||local.tier;
   const onlineDesign=designs.find(d=>d.designName===designName);
   
