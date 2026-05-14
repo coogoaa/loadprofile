@@ -182,7 +182,7 @@ def calc_n(tier, hvac, ev_km, sam3d, mask2d):
 
     inv = pick_inverter(pv_pre, tier)
     actual_pv = inv['final_pv']
-    actual_panels = round(actual_pv / P.PANEL_KW)
+    actual_panels = math.floor(actual_pv / P.PANEL_KW)
 
     ratio = tier_obj['ratio']
     bat_target = actual_pv * ratio
@@ -509,7 +509,7 @@ def process_case(case, data_dir, output_dir):
                    'inv_kw': 0, 'scr': 0, 'scr_pct': 0, 'action': 'n/a',
                    'curtailed': False, 'curtail_panels': None, 'final_pv': rh['PV_total']}
             actual_pv = inv['final_pv']
-            actual_panels = round(actual_pv / P.PANEL_KW) if actual_pv > 0 else 0
+            actual_panels = math.floor(actual_pv / P.PANEL_KW) if actual_pv > 0 else 0
             chosen, sel_annual = select_panels(panels, actual_panels)
             out_data = {
                 'case_id': case_id, 'mode': m, 'tier': case['tier'],

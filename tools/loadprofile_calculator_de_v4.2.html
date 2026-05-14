@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>德国负荷 + 方案计算器 v4.2 · DE（V1.13 集成）</title>
+<style>
+:root{--bg:#080d14;--sur:#0d1320;--sur2:#121a27;--bor:#1b2a3b;--bor2:#233044;--tx:#c5cdd8;--dim:#5e7285;--mute:#344252;--ac:#00c8e8;--ac2:#007fa0;--blue:#6db8ff;--grn:#3dba52;--yel:#d09422;--red:#e84040;--ora:#e07035;--pur:#b07ef8;--mono:"JetBrains Mono","Fira Code","Courier New",monospace;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--tx);font:13px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;}
+header{height:54px;background:var(--sur);border-bottom:1px solid var(--bor);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+.hlogo{font-size:15px;font-weight:700;color:var(--ac);letter-spacing:.04em;}
+.hsub{color:var(--dim);font-size:11px;}
+.hv2{background:var(--grn);color:#000;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;}
+.hpill{margin-left:auto;background:var(--ac2);color:#fff;font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;}
+.tabnav{display:flex;gap:4px;margin-left:18px;}
+.tabnav button{background:transparent;border:1px solid transparent;color:var(--dim);font-size:12px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:inherit;}
+.tabnav button:hover{background:var(--sur2);color:var(--tx);}
+.tabnav button.active{background:var(--sur2);border-color:var(--ac2);color:var(--ac);}
+.layout{display:grid;grid-template-columns:296px 1fr;height:calc(100vh - 54px);overflow:hidden;}
+aside{background:var(--sur);border-right:1px solid var(--bor);overflow-y:auto;padding:14px 16px;}
+.slabel{font-size:10px;font-weight:700;color:var(--dim);margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bor);}
+.slabel:first-child{margin-top:0;}
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--dim);margin-bottom:4px;}
+.qb{display:inline-block;background:var(--ac2);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-right:3px;}
+.qbR{background:var(--ora);}
+.qbN{background:var(--pur);}
+.skip-tag{display:inline-block;background:var(--yel);color:#000;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:5px;}
+select,input[type=number],input[type=text],input[type=url]{width:100%;background:var(--sur2);border:1px solid var(--bor2);color:var(--tx);padding:6px 10px;border-radius:5px;font-size:12px;outline:none;appearance:none;font-family:inherit;}
+select{cursor:pointer;}
+select:disabled{opacity:.4;cursor:not-allowed;}
+select:focus,input:focus{border-color:var(--ac);}
+select.skipped{border-color:var(--yel);background:rgba(208,148,34,.08);}
+.project-fetch{display:grid;grid-template-columns:1fr 64px;gap:6px;}
+.project-fetch button,.mini-btn{background:var(--sur2);border:1px solid var(--ac2);color:var(--ac);font-size:11px;font-weight:700;padding:6px 8px;border-radius:5px;cursor:pointer;font-family:inherit;}
+.project-fetch button:hover,.mini-btn:hover{background:rgba(0,200,232,.1);}
+.project-fetch button:disabled{opacity:.45;cursor:wait;}
+.field.hidden,.hidden{display:none;}
+.note{background:var(--sur2);border:1px solid var(--bor);border-left:3px solid var(--ac);border-radius:4px;padding:7px 10px;font-size:11px;color:var(--dim);margin-top:8px;}
+.compare-area{background:var(--sur2);border:1px solid var(--bor);border-radius:6px;padding:14px;margin-bottom:16px;}
+.compare-area textarea{width:100%;height:120px;background:var(--bg);border:1px solid var(--bor2);color:var(--tx);padding:10px;border-radius:5px;font-size:11px;font-family:var(--mono);resize:vertical;outline:none;}
+.compare-area textarea:focus{border-color:var(--ac);}
+.compare-area button{background:var(--ac2);border:none;color:#fff;font-size:12px;font-weight:700;padding:8px 16px;border-radius:5px;cursor:pointer;margin-top:10px;font-family:inherit;}
+.compare-area button:hover{background:var(--ac);}
+.compare-result{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:16px;margin-top:16px;display:none;}
+.compare-result.show{display:block;}
+.compare-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;margin-top:12px;}
+.compare-table th{background:var(--sur2);color:var(--dim);padding:6px 10px;text-align:left;font-size:10px;border-bottom:1px solid var(--bor);}
+.compare-table td{padding:6px 10px;border-bottom:1px solid var(--bor);color:var(--tx);}
+.compare-table .diff{color:var(--red);font-weight:700;}
+.compare-table .match{color:var(--grn);font-weight:700;}
+.compare-table .online{color:var(--ac);}
+.compare-table .local{color:var(--pur);}
+.note.skip{border-left-color:var(--yel);}
+.note.ok{border-left-color:var(--grn);}
+.note.err{border-left-color:var(--red);color:#d8a0a0;}
+.note.load{border-left-color:var(--ac);}
+.csv-src{background:var(--sur2);border:1px solid var(--bor);border-left:3px solid var(--grn);border-radius:4px;padding:7px 10px;font-size:10px;color:var(--dim);margin-top:10px;font-family:var(--mono);line-height:1.7;}
+.scn-toggle{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;}
+.scn-toggle button{background:var(--sur2);border:1px solid var(--bor2);color:var(--dim);font-size:11px;font-weight:600;padding:7px 6px;border-radius:5px;cursor:pointer;font-family:inherit;}
+.scn-toggle button.active{background:rgba(224,112,53,.18);border-color:var(--ora);color:var(--ora);}
+.scn-toggle button[data-scn=n].active{background:rgba(176,126,248,.18);border-color:var(--pur);color:var(--pur);}
+.skip-row{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;}
+.skip-row button{background:var(--sur2);border:1px solid var(--bor2);color:var(--tx);font-size:11px;font-weight:600;padding:7px 6px;border-radius:5px;cursor:pointer;font-family:inherit;}
+.skip-row button:hover{border-color:var(--ac);}
+.skip-row button.skipall{border-color:var(--yel);color:var(--yel);}
+.skip-row button.skipall:hover{background:rgba(208,148,34,.12);}
+main{overflow-y:auto;padding:18px 22px;background:var(--bg);}
+.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-bottom:18px;}
+.card{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:11px 13px;}
+.card.hi{border-color:var(--ac2);}
+.card.hi2{border-color:var(--ora);}
+.card.hi3{border-color:var(--pur);}
+.cl{font-size:10px;color:var(--dim);margin-bottom:3px;}
+.cv{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--ac);}
+.cv.ora{color:var(--ora);} .cv.pur{color:var(--pur);} .cv.grn{color:var(--grn);} .cv.red{color:var(--red);}
+.cu{font-size:11px;color:var(--dim);}
+.sblock{background:var(--sur);border:1px solid var(--bor);border-radius:6px;margin-bottom:11px;overflow:hidden;}
+.sblock.rh{border-color:rgba(224,112,53,.35);}
+.sblock.n{border-color:rgba(176,126,248,.35);}
+.shdr{display:flex;align-items:center;gap:9px;padding:11px 15px;cursor:pointer;user-select:none;border-bottom:1px solid transparent;}
+.shdr:hover{background:var(--sur2);}
+.shdr.open{border-bottom-color:var(--bor);}
+.snum{background:var(--ac2);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;}
+.snum.rh{background:var(--ora);}
+.snum.n{background:var(--pur);}
+.stit{font-size:13px;font-weight:600;flex:1;}
+.sbadge{font-family:var(--mono);font-size:11px;color:var(--blue);}
+.chev{color:var(--dim);font-size:10px;transition:transform .18s;}
+.chev.open{transform:rotate(90deg);}
+.sbody{padding:15px;display:none;}
+.sbody.open{display:block;}
+.ssec{margin-bottom:15px;}
+.sstit{font-size:10px;font-weight:700;color:var(--dim);letter-spacing:.06em;margin-bottom:7px;display:flex;align-items:center;gap:6px;}
+.sstit::after{content:'';flex:1;height:1px;background:var(--bor);}
+.fml{background:var(--sur2);border:1px solid var(--bor);border-radius:4px;padding:9px 13px;font-family:var(--mono);font-size:11.5px;color:var(--blue);margin:7px 0;white-space:pre-wrap;overflow-x:auto;}
+.fml .r{color:var(--ac);font-weight:700;}
+.fml .o{color:var(--ora);font-weight:700;}
+.fml .p{color:var(--pur);font-weight:700;}
+.fml .y{color:var(--yel);font-weight:700;}
+.fml .c{color:var(--dim);}
+.src-tag{font-size:9px;font-family:var(--mono);color:var(--grn);background:rgba(61,186,82,.12);border:1px solid rgba(61,186,82,.25);border-radius:3px;padding:1px 5px;margin-left:6px;}
+.tw{overflow-x:auto;margin:7px 0;}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;}
+th{background:var(--sur2);color:var(--dim);padding:4px 9px;text-align:right;font-size:10px;border-bottom:1px solid var(--bor);white-space:nowrap;}
+th:first-child{text-align:left;}
+td{padding:3px 9px;text-align:right;border-bottom:1px solid var(--bor);color:var(--tx);}
+td:first-child{text-align:left;color:var(--dim);}
+tr.cool{background:rgba(0,200,232,.04);}
+tr.heat{background:rgba(230,90,40,.04);}
+tr.both{background:rgba(176,126,248,.06);}
+tr.hi{background:rgba(0,200,232,.10);}
+tr.hi td{color:var(--ac);font-weight:700;}
+tr.skip{background:rgba(208,148,34,.10);}
+tr.skip td{color:var(--yel);font-weight:700;}
+.tag{color:var(--ac);font-size:10px;}
+.brow{display:flex;align-items:center;gap:7px;height:18px;margin-bottom:2px;}
+.blbl{width:28px;font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;flex-shrink:0;}
+.btrk{flex:1;background:var(--sur2);border-radius:2px;height:10px;overflow:hidden;}
+.bfil{height:100%;background:var(--ac2);}
+.bfil.d{background:var(--yel);}.bfil.p{background:var(--ora);}.bfil.e{background:var(--grn);}
+.bval{width:48px;font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;flex-shrink:0;}
+.mchart{display:flex;align-items:flex-end;gap:2px;height:56px;margin:8px 0 2px;}
+.mbar{flex:1;background:var(--ac2);border-radius:2px 2px 0 0;}
+.mbar.cool{background:#0088aa;}.mbar.heat{background:#8b2e1a;}.mbar.both{background:#8050b8;}
+.mlbls{display:flex;gap:2px;margin-bottom:6px;}
+.mlbls span{flex:1;text-align:center;font-size:9px;color:var(--mute);}
+.ogrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin-top:11px;}
+.ogrid.rh,.ogrid.n4{grid-template-columns:repeat(4,1fr);}
+.ogrid.n5{grid-template-columns:repeat(5,1fr);}
+.ocard{background:var(--sur2);border:1px solid var(--bor);border-radius:6px;padding:13px;}
+.ocard.rh{border-color:rgba(224,112,53,.35);}
+.ocard.n{border-color:rgba(176,126,248,.35);}
+.ocl{font-size:11px;color:var(--dim);margin-bottom:3px;}
+.ocv{font-family:var(--mono);font-size:21px;font-weight:700;color:var(--ac);}
+.ocv.ora{color:var(--ora);} .ocv.pur{color:var(--pur);} .ocv.grn{color:var(--grn);} .ocv.red{color:var(--red);} .ocv.yel{color:var(--yel);}
+.ock{font-size:11px;color:var(--dim);}
+.ver{font-size:11px;color:var(--grn);font-family:var(--mono);margin-top:7px;}
+.legend{font-size:10px;color:var(--dim);line-height:2;}
+.modeBadge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;font-family:var(--mono);}
+.modeRH{background:rgba(224,112,53,.18);color:var(--ora);border:1px solid rgba(224,112,53,.4);}
+.modeRB{background:rgba(176,126,248,.18);color:var(--pur);border:1px solid rgba(176,126,248,.4);}
+.modeN{background:rgba(176,126,248,.18);color:var(--pur);border:1px solid rgba(176,126,248,.4);}
+.modePass{background:rgba(61,186,82,.18);color:var(--grn);border:1px solid rgba(61,186,82,.4);}
+.modeWarn{background:rgba(232,64,64,.18);color:var(--red);border:1px solid rgba(232,64,64,.4);}
+.modeSkip{background:rgba(208,148,34,.18);color:var(--yel);border:1px solid rgba(208,148,34,.4);}
+.kvrow{display:flex;justify-content:space-between;border-bottom:1px dashed var(--bor);padding:3px 0;font-family:var(--mono);font-size:11px;}
+.kvrow .k{color:var(--dim);} .kvrow .v{color:var(--blue);font-weight:700;} .kvrow .v.skip{color:var(--yel);}
+.params-hero{background:linear-gradient(135deg,rgba(0,200,232,.08),rgba(176,126,248,.06));border:1px solid var(--bor);border-radius:8px;padding:18px 22px;margin-bottom:16px;}
+.params-hero h2{color:var(--ac);font-size:18px;margin-bottom:6px;}
+.params-hero p{color:var(--dim);font-size:12px;}
+.about{max-width:880px;}
+.about h1{color:var(--ac);font-size:22px;margin-bottom:14px;}
+.about h2{color:var(--ora);font-size:15px;margin:18px 0 8px;}
+.about p,.about li{font-size:12.5px;color:var(--tx);line-height:1.85;}
+.about ul{padding-left:22px;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--bor2);border-radius:3px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="hlogo">德国负荷 + 方案计算器</div>
+  <div class="hv2">v4.2 · DE</div>
+  <div class="hsub">V1.13 集成 · LoadProfile + 系统组成 + 能量流 + ROI · 既有 PV 分布重算</div>
+  <nav class="tabnav" id="tabnav">
+    <button data-tab="calc" class="active">📊 场景计算</button>
+    <button data-tab="compare">🔍 线上比对</button>
+    <button data-tab="params">📚 参数库</button>
+    <button data-tab="about">ℹ 说明</button>
+  </nav>
+  <div class="hpill">实时</div>
+</header>
+<div class="layout">
+<aside id="side"></aside>
+<main id="out"></main>
+</div>
+<script src="de_v4.2.js"></script>
+<script>
+// 线上比对功能
+// 确保 f2 函数可用（从 de_v4.2.js 复制）
+if(typeof f2==='undefined'){
+  window.f2=(v,d=2)=>v.toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
+}
+if(typeof esc==='undefined'){
+  window.esc=s=>(''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderCompare(){
+  const h='<div class="params-hero">'+
+    '<h2>🔍 线上结果比对</h2>'+
+    '<p>贴入线上返回的 JSON 结果，与当前计算结果进行关键指标比对。</p>'+
+    '</div>'+
+    '<div class="compare-area">'+
+    '<label style="font-size:12px;color:var(--dim);margin-bottom:8px;display:block;">线上返回 JSON（支持两种格式）</label>'+
+    '<textarea id="onlineJsonInput" placeholder="请贴入线上返回的 JSON 结果...&#10;&#10;格式 1: { code: 200, data: { designs: [...] } }&#10;格式 2: [ designs 数组 ]"></textarea>'+
+    '<button onclick="doCompare()">开始比对</button>'+
+    '</div>'+
+    '<div id="compareResult" class="compare-result"></div>';
+  document.getElementById('out').innerHTML=h;
+}
+
+function doCompare(){
+  console.log('DEBUG: doCompare() called');
+  const input=document.getElementById('onlineJsonInput').value.trim();
+  console.log('DEBUG: input length =', input.length);
+  if(!input){
+    alert('请先贴入线上返回的 JSON 结果');
+    return;
+  }
+  
+  let onlineData;
+  try{
+    onlineData=JSON.parse(input);
+  }catch(e){
+    alert('JSON 解析失败，请检查格式');
+    return;
+  }
+  
+  // 解析两种格式
+  let designs=[];
+  if(Array.isArray(onlineData)){
+    // 格式 2: 直接是 designs 数组
+    designs=onlineData;
+  }else if(onlineData.data&&onlineData.data.designs){
+    // 格式 1: 完整 API 响应
+    designs=onlineData.data.designs;
+  }else{
+    alert('无法识别的 JSON 格式');
+    return;
+  }
+  
+  // 获取当前计算结果
+  const currentResult=getCurrentCalculationResult();
+  if(!currentResult){
+    alert('请先在「场景计算」页面完成计算');
+    return;
+  }
+  
+  // 比对并显示结果
+  const comparison=compareWithOnline(designs,currentResult);
+  renderComparisonResult(comparison);
+}
+
+function getCurrentCalculationResult(){
+  // 从全局变量中获取当前计算结果
+  if(window.currentRH){
+    return{mode:'R',tier:window.currentRH.tier,rh:window.currentRH,energy:window.currentEnergy,roi:window.currentROI};
+  }else if(window.currentN){
+    return{mode:'N',tier:window.currentN.tier,n:window.currentN,energy:window.currentEnergy,roi:window.currentROI};
+  }
+  return null;
+}
+
+function compareWithOnline(designs,local){
+  const tierMap={'A':'maxValue','B':'mostPopular','C':'customFit'};
+  console.log('DEBUG: local.tier =', local.tier);
+  console.log('DEBUG: tierMap[local.tier] =', tierMap[local.tier]);
+  const designName=tierMap[local.tier]||local.tier;
+  console.log('DEBUG: designName =', designName);
+  console.log('DEBUG: available designs =', designs.map(d=>d.designName));
+  const onlineDesign=designs.find(d=>d.designName===designName);
+  console.log('DEBUG: onlineDesign =', onlineDesign);
+  
+  if(!onlineDesign){
+    return{error:'未找到对应的设计方案（'+designName+'）'};
+  }
+  
+  const result={
+    mode:local.mode,
+    tier:local.tier,
+    online:onlineDesign,
+    local:local,
+    comparisons:[]
+  };
+  
+  // 提取关键指标进行比对
+  const metrics=[
+    {key:'systemSize',name:'系统容量 (kW)',online:onlineDesign.systemSize},
+    {key:'upfrontInvestment',name:'投资额 (€)',online:onlineDesign.upfrontInvestment},
+    {key:'batteryCapacity',name:'电池容量 (kWh)',online:onlineDesign.batteryCapacity},
+    {key:'irr',name:'IRR',online:onlineDesign.irr,format:'percent'},
+    {key:'paybackPeriod',name:'回本期 (年)',online:onlineDesign.paybackPeriod},
+    {key:'selfConsumption',name:'自用率',online:onlineDesign.selfConsumption,format:'percent'},
+    {key:'annualBillSavings',name:'年节省 (€)',online:onlineDesign.annualBillSavings}
+  ];
+  
+  metrics.forEach(m=>{
+    let localValue;
+    if(local.mode==='R'){
+      if(m.key==='systemSize')localValue=local.rh.PV_total;
+      else if(m.key==='upfrontInvestment')localValue=local.roi.cost_breakdown.total;
+      else if(m.key==='batteryCapacity')localValue=local.rh.bat_kWh;
+      else if(m.key==='irr')localValue=local.roi.IRR;
+      else if(m.key==='paybackPeriod')localValue=local.roi.payback_years;
+      else if(m.key==='selfConsumption')localValue=local.energy.scr_pct/100;
+      else if(m.key==='annualBillSavings')localValue=local.roi.annual_savings;
+    }else{
+      if(m.key==='systemSize')localValue=local.n.actual_pv;
+      else if(m.key==='upfrontInvestment')localValue=local.roi.cost_breakdown.total;
+      else if(m.key==='batteryCapacity')localValue=local.n.bat_kWh;
+      else if(m.key==='irr')localValue=local.roi.IRR;
+      else if(m.key==='paybackPeriod')localValue=local.roi.payback_years;
+      else if(m.key==='selfConsumption')localValue=local.energy.scr_pct/100;
+      else if(m.key==='annualBillSavings')localValue=local.roi.annual_savings;
+    }
+    
+    const diff=Math.abs(m.online-localValue);
+    const diffPct=localValue>0?diff/localValue*100:0;
+    const isMatch=diffPct<5; // 差异小于5%视为匹配
+    
+    result.comparisons.push({
+      name:m.name,
+      online:m.online,
+      local:localValue,
+      diff:diff,
+      diffPct:diffPct,
+      isMatch:isMatch,
+      format:m.format||'number'
+    });
+  });
+  
+  return result;
+}
+
+function renderComparisonResult(comparison){
+  const container=document.getElementById('compareResult');
+  if(comparison.error){
+    container.innerHTML='<div class="note err">'+esc(comparison.error)+'</div>';
+    container.classList.add('show');
+    return;
+  }
+  
+  let h='<h3 style="font-size:14px;font-weight:700;color:var(--ac);margin-bottom:12px;">比对结果：'+comparison.mode+' 模式 · '+comparison.tier+' 档</h3>';
+  h+='<table class="compare-table">';
+  h+='<tr><th>指标</th><th>线上结果</th><th>本地计算</th><th>差异</th><th>差异率</th><th>状态</th></tr>';
+  
+  comparison.comparisons.forEach(c=>{
+    const onlineStr=c.format==='percent'?(c.online*100).toFixed(2)+'%':f2(c.online);
+    const localStr=c.format==='percent'?(c.local*100).toFixed(2)+'%':f2(c.local);
+    const diffStr=c.format==='percent'?c.diffPct.toFixed(2)+'%':f2(c.diff);
+    const statusClass=c.isMatch?'match':'diff';
+    const statusText=c.isMatch?'✓ 匹配':'✗ 差异';
+    
+    h+='<tr>'+
+      '<td>'+c.name+'</td>'+
+      '<td class="online">'+onlineStr+'</td>'+
+      '<td class="local">'+localStr+'</td>'+
+      '<td>'+diffStr+'</td>'+
+      '<td>'+c.diffPct.toFixed(2)+'%</td>'+
+      '<td class="'+statusClass+'">'+statusText+'</td>'+
+      '</tr>';
+  });
+  
+  h+='</table>';
+  h+='<div class="note" style="margin-top:12px;">注：差异率小于 5% 视为匹配。线上结果可能包含其他因素（补贴、税率等），仅供参考。</div>';
+  
+  container.innerHTML=h;
+  container.classList.add('show');
+}
+</script>
+</body>
+</html>

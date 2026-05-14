@@ -89,8 +89,8 @@ bat_kWh      = ceil_to_spec(max(5, bat_target), [5, 6.5, 9.6, 10, 13.5, 16, 20, 
 
 ## 8. 选板（按年发电量降序选前 N 块）
 
-- actual_panels = 28 块（容配比削减后）
-- 选中面板年发电量合计 = 11,962.1 kWh/年（来自 panel_location.json `monthlyHourlyPowerList`）
+- actual_panels = 27 块（容配比削减后）
+- 选中面板年发电量合计 = 11,574.8 kWh/年（来自 panel_location.json `monthlyHourlyPowerList`）
 - 实装 PV = 12.93 kWp
 
 ## 9. 结果摘要
@@ -100,6 +100,6 @@ bat_kWh      = ceil_to_spec(max(5, bat_target), [5, 6.5, 9.6, 10, 13.5, 16, 20, 
 | 模式 | **R-H** |
 | 既有 PV | 4.00 kWp |
 | 新增 PV (added) | 8.93 kWp (19 块) |
-| 实装 PV (actual) | 12.93 kWp (28 块) |
+| 实装 PV (actual) | 12.93 kWp (27 块) |
 | 逆变器 | 10 kW · SCR 129.30% · ok |
 | 电池 | 13.5 kWh (target 11.64, ratio 0.9) |
