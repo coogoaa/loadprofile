@@ -1,0 +1,96 @@
+{
+  "/tmp/cases.json": {
+    "request": {
+      "url": "https://file.greensketch.ai/marketing/test/debug//tmp/cases.json/request.json",
+      "path": "/tmp/cases.json/request.json",
+      "success": false
+    },
+    "panel_location": {
+      "url": "https://file.greensketch.ai/marketing/test/debug//tmp/cases.json/panel_location.json",
+      "path": "/tmp/cases.json/panel_location.json",
+      "success": false
+    },
+    "detect_building": {
+      "url": "https://file.greensketch.ai/marketing/test/debug//tmp/cases.json/detect_building.json",
+      "path": "/tmp/cases.json/detect_building.json",
+      "success": false
+    },
+    "maxValue_panel_location": {
+      "url": "https://file.greensketch.ai/marketing/test/debug//tmp/cases.json/maxValue_panel_location.json",
+      "path": "/tmp/cases.json/maxValue_panel_location.json",
+      "success": false
+    },
+    "maxValue_cashflow": {
+      "url": "https://file.greensketch.ai/marketing/test/debug//tmp/cases.json/maxValue_cashflow.json",
+      "path": "/tmp/cases.json/maxValue_cashflow.json",
+      "success": false
+    },
+    "mostPopular_panel_location": {
+      "url": "https://file.greensketch.ai/marketing/test/debug//tmp/cases.json/mostPopular_panel_location.json",
+      "path": "/tmp/cases.json/mostPopular_panel_location.json",
+      "success": false
+    },
+    "mostPopular_cashflow": {
+      "url": "https://file.greensketch.ai/marketing/test/debug//tmp/cases.json/mostPopular_cashflow.json",
+      "path": "/tmp/cases.json/mostPopular_cashflow.json",
+      "success": false
+    },
+    "customFit_panel_location": {
+      "url": "https://file.greensketch.ai/marketing/test/debug//tmp/cases.json/customFit_panel_location.json",
+      "path": "/tmp/cases.json/customFit_panel_location.json",
+      "success": false
+    },
+    "customFit_cashflow": {
+      "url": "https://file.greensketch.ai/marketing/test/debug//tmp/cases.json/customFit_cashflow.json",
+      "path": "/tmp/cases.json/customFit_cashflow.json",
+      "success": false
+    }
+  },
+  "../../../V1.7 测试/测试数据": {
+    "request": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/../../../V1.7 测试/测试数据/request.json",
+      "path": "data/../../../V1.7 测试/测试数据/request.json",
+      "success": false
+    },
+    "panel_location": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/../../../V1.7 测试/测试数据/panel_location.json",
+      "path": "data/../../../V1.7 测试/测试数据/panel_location.json",
+      "success": false
+    },
+    "detect_building": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/../../../V1.7 测试/测试数据/detect_building.json",
+      "path": "data/../../../V1.7 测试/测试数据/detect_building.json",
+      "success": false
+    },
+    "maxValue_panel_location": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/../../../V1.7 测试/测试数据/maxValue_panel_location.json",
+      "path": "data/../../../V1.7 测试/测试数据/maxValue_panel_location.json",
+      "success": false
+    },
+    "maxValue_cashflow": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/../../../V1.7 测试/测试数据/maxValue_cashflow.json",
+      "path": "data/../../../V1.7 测试/测试数据/maxValue_cashflow.json",
+      "success": false
+    },
+    "mostPopular_panel_location": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/../../../V1.7 测试/测试数据/mostPopular_panel_location.json",
+      "path": "data/../../../V1.7 测试/测试数据/mostPopular_panel_location.json",
+      "success": false
+    },
+    "mostPopular_cashflow": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/../../../V1.7 测试/测试数据/mostPopular_cashflow.json",
+      "path": "data/../../../V1.7 测试/测试数据/mostPopular_cashflow.json",
+      "success": false
+    },
+    "customFit_panel_location": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/../../../V1.7 测试/测试数据/customFit_panel_location.json",
+      "path": "data/../../../V1.7 测试/测试数据/customFit_panel_location.json",
+      "success": false
+    },
+    "customFit_cashflow": {
+      "url": "https://file.greensketch.ai/marketing/test/debug/../../../V1.7 测试/测试数据/customFit_cashflow.json",
+      "path": "data/../../../V1.7 测试/测试数据/customFit_cashflow.json",
+      "success": false
+    }
+  }
+}
