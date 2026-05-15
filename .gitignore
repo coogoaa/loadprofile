@@ -1,2 +1,3 @@
 /stories/
 .DS_Store
+node_modules
